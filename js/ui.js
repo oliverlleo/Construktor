@@ -4,6 +4,7 @@
  */
 
 import { TIPS_STATE } from './config.js';
+import { getUserPreference, saveUserPreference } from './database.js';
 
 // Variável para controle do estado da interface
 let iconsAvailable = false;
@@ -104,31 +105,36 @@ export function setupMobileInteractions() {
  * Configura o sistema de dicas
  */
 export function setupTips() {
-    // Verifica o estado das dicas
-    const welcomeTipClosed = localStorage.getItem(TIPS_STATE.WELCOME_TIP) === 'true';
-    const quickTipClosed = localStorage.getItem(TIPS_STATE.QUICK_TIP) === 'true';
-    const modulesTipClosed = localStorage.getItem(TIPS_STATE.MODULES_TIP) === 'true';
+    // Verifica o estado das dicas (primeiro no Firebase, depois no localStorage como fallback)
+    const welcomeTipClosed = getUserPreference(TIPS_STATE.WELCOME_TIP, false);
+    const quickTipClosed = getUserPreference(TIPS_STATE.QUICK_TIP, false);
+    const modulesTipClosed = getUserPreference(TIPS_STATE.MODULES_TIP, false);
     
     const welcomeTip = document.getElementById('welcome-tip');
     const quickTip = document.getElementById('quick-tip');
     const modulesTip = document.getElementById('modules-tip');
     
-    // Na primeira visita, mostra as dicas
-    // Se o localStorage estiver vazio (primeira visita), mostra as dicas
+    // Mostra ou esconde as dicas baseado nas preferências do usuário
     if (welcomeTip) {
-        if (!welcomeTipClosed) {
+        if (welcomeTipClosed) {
+            welcomeTip.classList.add('hidden');
+        } else {
             welcomeTip.classList.remove('hidden');
         }
     }
     
     if (quickTip) {
-        if (!quickTipClosed) {
+        if (quickTipClosed) {
+            quickTip.classList.add('hidden');
+        } else {
             quickTip.classList.remove('hidden');
         }
     }
     
     if (modulesTip) {
-        if (!modulesTipClosed) {
+        if (modulesTipClosed) {
+            modulesTip.classList.add('hidden');
+        } else {
             modulesTip.classList.remove('hidden');
         }
     }
@@ -142,13 +148,13 @@ export function setupTips() {
             if (tipElement) {
                 tipElement.classList.add('hidden');
                 
-                // Salva a preferência do usuário
+                // Salva a preferência do usuário no Firebase
                 if (tipId === 'welcome-tip') {
-                    localStorage.setItem(TIPS_STATE.WELCOME_TIP, 'true');
+                    saveUserPreference(TIPS_STATE.WELCOME_TIP, true);
                 } else if (tipId === 'quick-tip') {
-                    localStorage.setItem(TIPS_STATE.QUICK_TIP, 'true');
+                    saveUserPreference(TIPS_STATE.QUICK_TIP, true);
                 } else if (tipId === 'modules-tip') {
-                    localStorage.setItem(TIPS_STATE.MODULES_TIP, 'true');
+                    saveUserPreference(TIPS_STATE.MODULES_TIP, true);
                 }
             }
         });
@@ -158,6 +164,11 @@ export function setupTips() {
     const helpButton = document.getElementById('help-button');
     if (helpButton) {
         helpButton.addEventListener('click', () => {
+            // Limpa as preferências para mostrar as dicas novamente
+            saveUserPreference(TIPS_STATE.WELCOME_TIP, false);
+            saveUserPreference(TIPS_STATE.QUICK_TIP, false);
+            saveUserPreference(TIPS_STATE.MODULES_TIP, false);
+            
             // Mostra as dicas quando o botão de ajuda é clicado
             if (welcomeTip) welcomeTip.classList.remove('hidden');
             if (quickTip) quickTip.classList.remove('hidden');

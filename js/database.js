@@ -1,10 +1,12 @@
 import { getUsuarioId } from './autenticacao.js';
 import { showError, showLoading, hideLoading } from './ui.js';
+import { TIPS_STATE } from './config.js';
 
 // Variáveis do módulo
 let db;
 let allEntities = [];
 let modulesOrder = []; // Armazena a ordem dos módulos
+let userPreferences = {}; // Armazena preferências do usuário
 
 /**
  * Inicializa o módulo de banco de dados
@@ -14,6 +16,9 @@ let modulesOrder = []; // Armazena a ordem dos módulos
 export async function initDatabase(firebase) {
     try {
         db = firebase.database();
+        
+        // Carrega preferências do usuário
+        await loadUserPreferences();
     } catch (error) {
         console.error("Erro ao inicializar banco de dados:", error);
         showError('Erro de Conexão', 'Não foi possível conectar ao banco de dados.');
@@ -457,6 +462,84 @@ export async function saveModulesOrder(orderArray) {
  */
 export function getModulesOrder() {
     return modulesOrder;
+}
+
+/**
+ * Carrega preferências do usuário do Firebase
+ * @returns {Promise<Object>} - Objeto com as preferências do usuário
+ */
+export async function loadUserPreferences() {
+    try {
+        const userId = getUsuarioId();
+        if (!userId) {
+            throw new Error('Usuário não autenticado');
+        }
+        
+        const snapshot = await db.ref(`users/${userId}/preferences`).get();
+        if (snapshot.exists()) {
+            userPreferences = snapshot.val();
+        } else {
+            userPreferences = {};
+        }
+        
+        return userPreferences;
+    } catch (error) {
+        console.error("Erro ao carregar preferências do usuário:", error);
+        return {};
+    }
+}
+
+/**
+ * Salva uma preferência do usuário no Firebase
+ * @param {string} key - Chave da preferência
+ * @param {any} value - Valor da preferência
+ * @returns {Promise<void>}
+ */
+export async function saveUserPreference(key, value) {
+    try {
+        const userId = getUsuarioId();
+        if (!userId) {
+            throw new Error('Usuário não autenticado');
+        }
+        
+        // Atualiza o objeto local de preferências
+        userPreferences[key] = value;
+        
+        // Salva no Firebase
+        await db.ref(`users/${userId}/preferences/${key}`).set(value);
+        
+        // Também salva no localStorage como fallback
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.error("Erro ao salvar preferência do usuário:", error);
+        // Fallback para localStorage se o Firebase falhar
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+}
+
+/**
+ * Obtém uma preferência do usuário
+ * @param {string} key - Chave da preferência
+ * @param {any} defaultValue - Valor padrão caso a preferência não exista
+ * @returns {any} - Valor da preferência
+ */
+export function getUserPreference(key, defaultValue = null) {
+    // Primeiro verifica no objeto carregado do Firebase
+    if (userPreferences && userPreferences.hasOwnProperty(key)) {
+        return userPreferences[key];
+    }
+    
+    // Depois tenta do localStorage como fallback
+    try {
+        const localValue = localStorage.getItem(key);
+        if (localValue !== null) {
+            return JSON.parse(localValue);
+        }
+    } catch (e) {
+        // Se não conseguir ler do localStorage, ignora
+    }
+    
+    return defaultValue;
 }
 
 /**

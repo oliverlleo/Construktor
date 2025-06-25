@@ -3,7 +3,7 @@
  * Coordena a inicialização dos módulos e a interação entre eles
  */
 
-import { firebaseConfig, availableEntityIcons, fieldTypes } from './config.js';
+import { firebaseConfig, availableEntityIcons, fieldTypes, defaultFieldConfigs } from './config.js';
 import { initAutenticacao, isUsuarioLogado, getUsuarioId } from './autenticacao.js';
 import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitiesIntoModules, 
          loadStructureForEntity, createEntity, createModule, saveEntityToModule, deleteEntityFromModule,
@@ -51,6 +51,9 @@ async function initApp() {
         
         // Configura os event listeners
         setupEventListeners();
+        
+        // Configura o painel de propriedades dos campos
+        setupFieldPropertiesPanelEvents();
         
         // Verifica os estados vazios
         checkEmptyStates();
@@ -188,6 +191,11 @@ function renderFormField(fieldData) {
     const template = document.getElementById('form-field-template');
     const clone = template.content.cloneNode(true);
     const card = clone.querySelector('.form-field-card');
+    
+    // Gera um ID único para o elemento do DOM
+    const domId = `field-card-${fieldData.id}`;
+    card.id = domId;
+    
     card.dataset.fieldId = fieldData.id;
     card.dataset.fieldData = JSON.stringify(fieldData);
     const fieldInfo = fieldTypes.find(f => f.type === fieldData.type);
@@ -205,6 +213,16 @@ function renderFormField(fieldData) {
         clone.querySelector('.edit-field-btn').style.display = 'none';
     } else {
         clone.querySelector('.field-type').textContent = fieldInfo.name;
+        
+        // Adicionar indicador visual para campos com configurações avançadas
+        if (fieldData.config && Object.keys(fieldData.config).length > 0) {
+            const label = clone.querySelector('.field-label');
+            if (!fieldData.config.required) {
+                label.textContent += ' (Configurado)';
+            } else {
+                label.textContent += ' *';  // Asterisco para campos obrigatórios
+            }
+        }
     }
     
     dropzone.appendChild(clone);
@@ -225,6 +243,8 @@ function renderFormField(fieldData) {
             emptyFormState.classList.remove('hidden');
         }
     }
+    
+    return newField;
 }
 
 function updateModalBreadcrumb() {
@@ -430,6 +450,13 @@ function setupEventListeners() {
                     } 
                 });
              }
+             
+             const editBtn = e.target.closest('.edit-field-btn');
+             if (editBtn) {
+                const fieldCard = editBtn.closest('.form-field-card');
+                const fieldData = JSON.parse(fieldCard.dataset.fieldData);
+                openFieldPropertiesPanel(fieldData, fieldCard);
+             }
         });
     }
     
@@ -592,9 +619,18 @@ async function handleFieldDrop(event) {
         );
         
         if (result.confirmed && result.value) {
-            const fieldData = { id: `field_${Date.now()}`, type: fieldType, label: result.value };
+            const fieldId = `field_${Date.now()}`;
+            const fieldData = { 
+                id: fieldId, 
+                type: fieldType, 
+                label: result.value,
+                config: { ...defaultFieldConfigs[fieldType] }
+            };
             renderFormField(fieldData);
             showSuccess('Campo adicionado!', '');
+            
+            // Opcional: abrir painel de propriedades após adicionar
+            // openFieldPropertiesPanel(fieldData);
         }
     }
 }
@@ -722,8 +758,19 @@ async function handleAddNewEntity() {
                     icon: formValues.icon 
                 });
                 
-                // Recarregar entidades e renderizar a nova
-                await loadAllEntities();
+                // Recarregar entidades
+                const updatedEntities = await loadAllEntities();
+                
+                // Limpar a lista atual de entidades na interface
+                const entityList = document.getElementById('entity-list');
+                if (entityList) {
+                    entityList.innerHTML = '';
+                }
+                
+                // Renderizar todas as entidades, incluindo a nova
+                updatedEntities.forEach(entity => {
+                    renderEntityInLibrary(entity);
+                });
                 
                 hideLoading();
                 showSuccess('Entidade Criada!', `A entidade "${formValues.name}" está pronta para ser usada.`);
@@ -850,6 +897,9 @@ async function confirmAndRemoveCustomEntity(card) {
             // Remove os cartões das entidades dos módulos
             document.querySelectorAll(`.dropped-entity-card[data-entity-id="${entityId}"]`).forEach(c => c.remove());
             
+            // Remove o cartão da entidade da biblioteca
+            card.remove();
+            
             hideLoading();
             showSuccess('Eliminado!', `A entidade "${entityName}" foi eliminada permanentemente.`);
         } catch (error) {
@@ -917,6 +967,333 @@ async function saveCurrentStructure() {
     }
 }
 
+// Funções para o painel de propriedades de campos
+function openFieldPropertiesPanel(fieldData, fieldCard) {
+    const panel = document.getElementById('field-properties-panel');
+    if (!panel) return;
+    
+    // Armazena referência ao cartão de campo que está sendo editado
+    panel.dataset.editingFieldCard = fieldCard ? fieldCard.id : '';
+    
+    // Armazena os dados atuais do campo
+    panel.dataset.fieldData = JSON.stringify(fieldData);
+    
+    // Configura o ícone e título
+    const icon = document.getElementById('field-properties-icon');
+    const fieldInfo = fieldTypes.find(f => f.type === fieldData.type);
+    if (icon && fieldInfo) {
+        icon.setAttribute('data-lucide', fieldInfo.icon);
+        createIcons();
+    }
+    
+    // Preenche os campos de informações básicas
+    document.getElementById('field-label').value = fieldData.label || '';
+    document.getElementById('field-description').value = fieldData.description || '';
+    document.getElementById('field-required').checked = fieldData.config?.required || false;
+    
+    // Esconde todos os painéis de configuração específicos
+    document.querySelectorAll('.field-type-config').forEach(el => {
+        el.classList.add('hidden');
+    });
+    
+    // Mostra apenas o painel relevante para este tipo de campo
+    const configPanel = document.getElementById(`${fieldData.type}-field-config`);
+    if (configPanel) {
+        configPanel.classList.remove('hidden');
+        
+        // Preenche as configurações específicas de acordo com o tipo
+        switch (fieldData.type) {
+            case 'date':
+                setupDateFieldConfig(fieldData.config || defaultFieldConfigs.date);
+                break;
+            case 'text':
+            case 'textarea':
+                setupTextFieldConfig(fieldData.config || defaultFieldConfigs.text);
+                break;
+            case 'number':
+                setupNumberFieldConfig(fieldData.config || defaultFieldConfigs.number);
+                break;
+            case 'select':
+                setupSelectFieldConfig(fieldData.config || defaultFieldConfigs.select);
+                break;
+            // Outros tipos podem ser adicionados conforme necessário
+        }
+    }
+    
+    // Mostra o painel
+    panel.classList.remove('translate-x-full');
+}
+
+function closeFieldPropertiesPanel() {
+    const panel = document.getElementById('field-properties-panel');
+    if (panel) {
+        panel.classList.add('translate-x-full');
+    }
+}
+
+function setupDateFieldConfig(config) {
+    // Formato de data
+    document.querySelector(`input[name="date-format"][value="${config.dateFormat || 'DD/MM/AAAA'}"]`).checked = true;
+    
+    // Inclusão de horas
+    document.querySelector(`input[name="time-format"][value="${config.includeTime || 'none'}"]`).checked = true;
+    
+    // Comportamento do campo
+    document.querySelector(`input[name="date-behavior"][value="${config.behavior || 'singleDate'}"]`).checked = true;
+    
+    // Valor padrão
+    document.querySelector(`input[name="date-default"][value="${config.defaultValue || 'none'}"]`).checked = true;
+}
+
+function setupTextFieldConfig(config) {
+    // Tipo de conteúdo
+    document.querySelector(`input[name="text-content-type"][value="${config.contentType || 'text'}"]`).checked = true;
+    
+    // Aparência
+    document.querySelector(`input[name="text-appearance"][value="${config.appearance || 'singleLine'}"]`).checked = true;
+    
+    // Limite de caracteres
+    const maxLengthInput = document.getElementById('text-max-length');
+    maxLengthInput.value = config.maxLength || '';
+}
+
+function setupNumberFieldConfig(config) {
+    // Formato do número
+    document.querySelector(`input[name="number-format"][value="${config.format || 'plain'}"]`).checked = true;
+    
+    // Casas decimais
+    document.getElementById('decimal-precision').value = config.precision || 2;
+    
+    // Símbolo de moeda
+    document.getElementById('currency-symbol').value = config.symbol || 'R$';
+    
+    // Valor mínimo
+    document.getElementById('number-min-value').value = config.minValue || '';
+    
+    // Valor máximo
+    document.getElementById('number-max-value').value = config.maxValue || '';
+    
+    // Exibe/esconde campos condicionais
+    const numberFormat = config.format || 'plain';
+    document.getElementById('decimal-precision-container').classList.toggle('hidden', !['decimal', 'currency', 'percentage'].includes(numberFormat));
+    document.getElementById('currency-symbol-container').classList.toggle('hidden', numberFormat !== 'currency');
+    
+    // Adiciona listeners para mostrar/esconder campos condicionais
+    document.querySelectorAll('input[name="number-format"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const format = this.value;
+            document.getElementById('decimal-precision-container').classList.toggle('hidden', !['decimal', 'currency', 'percentage'].includes(format));
+            document.getElementById('currency-symbol-container').classList.toggle('hidden', format !== 'currency');
+        });
+    });
+}
+
+function setupSelectFieldConfig(config) {
+    // Comportamento da seleção
+    document.querySelector(`input[name="select-behavior"][value="${config.allowMultiple ? 'multiple' : 'single'}"]`).checked = true;
+    
+    // Aparência
+    document.querySelector(`input[name="select-appearance"][value="${config.appearance || 'dropdown'}"]`).checked = true;
+    
+    // Opções
+    const optionsContainer = document.getElementById('select-options-container');
+    optionsContainer.innerHTML = '';
+    
+    // Se não houver opções, adiciona uma padrão
+    const options = config.options && config.options.length > 0 ? config.options : [{ id: 'opt1', label: 'Opção 1' }];
+    
+    options.forEach((option, index) => {
+        const optionElement = createSelectOption(option.label, index);
+        optionsContainer.appendChild(optionElement);
+    });
+    
+    // Configura o botão para adicionar novas opções
+    document.getElementById('add-select-option').addEventListener('click', function() {
+        const newOption = createSelectOption(`Opção ${optionsContainer.children.length + 1}`, optionsContainer.children.length);
+        optionsContainer.appendChild(newOption);
+        createIcons();
+    });
+}
+
+function createSelectOption(label, index) {
+    const optionTemplate = `
+        <div class="select-option-item flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200">
+            <div class="flex-1">
+                <input type="text" class="w-full p-1.5 border border-slate-300 rounded text-sm" placeholder="Nome da opção" value="${label}">
+            </div>
+            <button class="move-option-up text-slate-500 hover:text-slate-700 p-1" ${index === 0 ? 'disabled' : ''}>
+                <i data-lucide="chevron-up" class="h-4 w-4"></i>
+            </button>
+            <button class="move-option-down text-slate-500 hover:text-slate-700 p-1">
+                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+            </button>
+            <button class="delete-option text-slate-500 hover:text-red-500 p-1">
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+            </button>
+        </div>
+    `;
+    
+    const template = document.createElement('template');
+    template.innerHTML = optionTemplate.trim();
+    const optionElement = template.content.firstChild;
+    
+    // Configurar botões de ação
+    optionElement.querySelector('.move-option-up').addEventListener('click', function() {
+        const item = this.closest('.select-option-item');
+        const prev = item.previousElementSibling;
+        if (prev) {
+            item.parentNode.insertBefore(item, prev);
+        }
+    });
+    
+    optionElement.querySelector('.move-option-down').addEventListener('click', function() {
+        const item = this.closest('.select-option-item');
+        const next = item.nextElementSibling;
+        if (next) {
+            item.parentNode.insertBefore(next, item);
+        }
+    });
+    
+    optionElement.querySelector('.delete-option').addEventListener('click', function() {
+        const item = this.closest('.select-option-item');
+        const container = item.parentNode;
+        
+        if (container.children.length > 1) {
+            item.remove();
+        } else {
+            showError('Erro', 'Deve haver pelo menos uma opção.');
+        }
+    });
+    
+    return optionElement;
+}
+
+function applyFieldProperties() {
+    const panel = document.getElementById('field-properties-panel');
+    if (!panel) return;
+    
+    // Obtém dados do campo sendo editado
+    const fieldData = JSON.parse(panel.dataset.fieldData);
+    const fieldCardId = panel.dataset.editingFieldCard;
+    const fieldCard = document.getElementById(fieldCardId);
+    
+    if (!fieldCard) return;
+    
+    // Atualiza informações básicas
+    fieldData.label = document.getElementById('field-label').value;
+    fieldData.description = document.getElementById('field-description').value;
+    
+    // Inicializa o objeto de configuração se não existir
+    if (!fieldData.config) {
+        fieldData.config = { ...defaultFieldConfigs[fieldData.type] };
+    }
+    
+    // Atualiza campo obrigatório
+    fieldData.config.required = document.getElementById('field-required').checked;
+    
+    // Atualiza configurações específicas do tipo
+    switch (fieldData.type) {
+        case 'date':
+            fieldData.config.dateFormat = document.querySelector('input[name="date-format"]:checked').value;
+            fieldData.config.includeTime = document.querySelector('input[name="time-format"]:checked').value;
+            fieldData.config.behavior = document.querySelector('input[name="date-behavior"]:checked').value;
+            fieldData.config.defaultValue = document.querySelector('input[name="date-default"]:checked').value;
+            break;
+            
+        case 'text':
+        case 'textarea':
+            fieldData.config.contentType = document.querySelector('input[name="text-content-type"]:checked').value;
+            fieldData.config.appearance = document.querySelector('input[name="text-appearance"]:checked').value;
+            
+            const maxLength = document.getElementById('text-max-length').value;
+            fieldData.config.maxLength = maxLength ? parseInt(maxLength) : null;
+            break;
+            
+        case 'number':
+            fieldData.config.format = document.querySelector('input[name="number-format"]:checked').value;
+            fieldData.config.precision = parseInt(document.getElementById('decimal-precision').value || 2);
+            fieldData.config.symbol = document.getElementById('currency-symbol').value || 'R$';
+            
+            const minValue = document.getElementById('number-min-value').value;
+            fieldData.config.minValue = minValue ? parseFloat(minValue) : null;
+            
+            const maxValue = document.getElementById('number-max-value').value;
+            fieldData.config.maxValue = maxValue ? parseFloat(maxValue) : null;
+            break;
+            
+        case 'select':
+            fieldData.config.allowMultiple = document.querySelector('input[name="select-behavior"]:checked').value === 'multiple';
+            fieldData.config.appearance = document.querySelector('input[name="select-appearance"]:checked').value;
+            
+            // Coleta as opções
+            const optionsContainer = document.getElementById('select-options-container');
+            const options = [];
+            
+            Array.from(optionsContainer.children).forEach((optItem, index) => {
+                const label = optItem.querySelector('input').value.trim();
+                if (label) {
+                    options.push({
+                        id: `opt${index + 1}`,
+                        label: label
+                    });
+                }
+            });
+            
+            fieldData.config.options = options;
+            break;
+    }
+    
+    // Atualiza o campo no DOM
+    fieldCard.querySelector('.field-label').textContent = fieldData.label;
+    fieldCard.dataset.fieldData = JSON.stringify(fieldData);
+    
+    // Fecha o painel
+    closeFieldPropertiesPanel();
+    
+    // Notificação de sucesso
+    showSuccess('Propriedades atualizadas!', '');
+}
+
+function setupFieldPropertiesPanelEvents() {
+    // Botão para fechar o painel
+    const closeBtn = document.getElementById('close-properties-panel');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeFieldPropertiesPanel);
+    }
+    
+    // Botão para cancelar
+    const cancelBtn = document.getElementById('cancel-field-properties');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeFieldPropertiesPanel);
+    }
+    
+    // Botão para aplicar alterações
+    const applyBtn = document.getElementById('apply-field-properties');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyFieldProperties);
+    }
+    
+    // Configurar event listeners para número
+    document.querySelectorAll('input[name="number-format"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const format = this.value;
+            document.getElementById('decimal-precision-container').classList.toggle('hidden', !['decimal', 'currency', 'percentage'].includes(format));
+            document.getElementById('currency-symbol-container').classList.toggle('hidden', format !== 'currency');
+        });
+    });
+    
+    // Configurar o botão para adicionar novas opções
+    const addOptionBtn = document.getElementById('add-select-option');
+    if (addOptionBtn) {
+        addOptionBtn.addEventListener('click', function() {
+            const optionsContainer = document.getElementById('select-options-container');
+            const newOption = createSelectOption(`Opção ${optionsContainer.children.length + 1}`, optionsContainer.children.length);
+            optionsContainer.appendChild(newOption);
+            createIcons();
+        });
+    }
+}
+
 // Exporta funções públicas
 export {
     renderEntityInLibrary,
@@ -924,5 +1301,8 @@ export {
     renderDroppedEntity,
     renderFormField,
     openModal,
-    closeModal
+    closeModal,
+    openFieldPropertiesPanel,
+    closeFieldPropertiesPanel,
+    setupFieldPropertiesPanelEvents
 };

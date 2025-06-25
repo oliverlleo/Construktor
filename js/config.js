@@ -31,3 +31,62 @@ export const fieldTypes = [
     { type: 'file', name: 'Upload de Ficheiro', icon: 'upload-cloud' },
     { type: 'sub-entity', name: 'Tabela / Relação', icon: 'table-2' },
 ];
+
+// Configurações padrão para tipos de campos
+export const defaultFieldConfigs = {
+    text: {
+        contentType: 'text',       // text, email, url
+        appearance: 'singleLine',  // singleLine, multiLine
+        maxLength: null,           // número máximo de caracteres (null = ilimitado)
+        required: false            // campo obrigatório
+    },
+    textarea: {
+        contentType: 'text',
+        appearance: 'multiLine',
+        maxLength: null,
+        required: false
+    },
+    number: {
+        format: 'plain',          // plain, thousands, decimal, currency, percentage
+        precision: 2,             // número de casas decimais
+        symbol: 'R$',             // símbolo de moeda (para formato currency)
+        minValue: null,           // valor mínimo (null = ilimitado)
+        maxValue: null,           // valor máximo (null = ilimitado)
+        required: false
+    },
+    date: {
+        dateFormat: 'DD/MM/AAAA', // DD/MM/AAAA, MM/DD/AAAA, AAAA-MM-DD, complete
+        includeTime: 'none',      // none, HH:mm, HH:mm:ss
+        behavior: 'singleDate',   // singleDate, dateRange
+        defaultValue: 'none',     // none, today
+        required: false
+    },
+    email: {
+        contentType: 'email',
+        appearance: 'singleLine',
+        maxLength: null,
+        required: false
+    },
+    checkbox: {
+        defaultValue: false,
+        required: false
+    },
+    select: {
+        allowMultiple: false,     // single, multiple
+        appearance: 'dropdown',   // dropdown, buttons
+        options: [
+            { id: 'opt1', label: 'Opção 1' }
+        ],
+        required: false
+    },
+    file: {
+        allowedTypes: '*',        // mime types ou extensões, * para todos
+        maxSize: null,            // tamanho máximo em bytes (null = ilimitado)
+        required: false
+    },
+    'sub-entity': {
+        subType: 'independent',   // independent, relationship
+        subSchema: { attributes: [] },
+        required: false
+    }
+};
