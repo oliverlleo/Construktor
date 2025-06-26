@@ -37,16 +37,22 @@ export async function loadAllEntities() {
             throw new Error('Usuário não autenticado');
         }
         
+        console.log(`Buscando entidades para o usuário: ${userId}`);
         const snapshot = await db.ref(`users/${userId}/entities`).get();
         allEntities = [];
         
         if (snapshot.exists()) {
+            console.log("Entidades encontradas no Firebase");
             const customEntities = snapshot.val();
             for (const entityId in customEntities) {
+                console.log(`Processando entidade: ${entityId}`, customEntities[entityId]);
                 allEntities.push({ ...customEntities[entityId], id: entityId });
             }
+        } else {
+            console.log("Nenhuma entidade encontrada no Firebase");
         }
         
+        console.log(`Total de entidades carregadas: ${allEntities.length}`);
         return allEntities;
     } catch (error) {
         console.error("Erro ao carregar entidades:", error);

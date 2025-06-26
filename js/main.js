@@ -10,6 +10,8 @@ import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitie
          deleteEntity, deleteModule, saveEntityStructure, saveSubEntityStructure, saveModulesOrder } from './database.js';
 import { initUI, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, 
          showError, showConfirmDialog, showInputDialog } from './ui.js';
+import { initUserProfile } from './user/userProfile.js';
+import { initInvitations, checkPendingInvitations } from './user/invitations.js';
 
 // Variáveis globais
 let db;
@@ -41,13 +43,50 @@ async function initApp() {
         // Inicializa a interface do usuário
         initUI();
         
-        // Carrega os dados iniciais
-        await loadAllEntities();
+        // Inicializa o sistema de gerenciamento de usuário
+        initUserProfile(db);
+        
+        // Inicializa o sistema de convites
+        initInvitations(db);
+        
+        // Verifica se há convites pendentes
+        try {
+            const pendingInvites = await checkPendingInvitations();
+            console.log('Verificação de convites pendentes:', pendingInvites);
+            if (pendingInvites > 0) {
+                setTimeout(() => {
+                    showSuccess('Convites Pendentes', `Você tem ${pendingInvites} convite(s) pendente(s). Acesse o menu do usuário para visualizá-los.`);
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Erro ao verificar convites pendentes:', error);
+        }
+        
+        // Carrega e renderiza as entidades existentes
+        try {
+            console.log("Carregando entidades existentes...");
+            const entities = await loadAllEntities();
+            console.log(`Entidades carregadas: ${entities.length}`, entities);
+            
+            // Renderiza as entidades carregadas na biblioteca
+            const entityList = document.getElementById('entity-list');
+            if (entityList) {
+                entityList.innerHTML = ''; // Limpa a lista atual
+                entities.forEach(entity => {
+                    console.log(`Renderizando entidade: ${entity.name}`, entity);
+                    renderEntityInLibrary(entity);
+                });
+            }
+        } catch (entityError) {
+            console.error("Erro ao carregar/renderizar entidades:", entityError);
+        }
+        
+        // Popula a caixa de ferramentas de campos
+        populateFieldsToolbox();
+        
+        // Carrega e renderiza os módulos e suas entidades
         await loadAndRenderModules(renderModule);
         await loadDroppedEntitiesIntoModules(renderDroppedEntity);
-        
-        // Popula a caixa de ferramentas
-        populateFieldsToolbox();
         
         // Configura os event listeners
         setupEventListeners();
@@ -72,8 +111,27 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // ---- Funções de Renderização ----
 function renderEntityInLibrary(entity) {
+    // Verifica se a entidade já existe na lista (para evitar duplicação)
+    const existingCard = document.querySelector(`.entity-card[data-entity-id="${entity.id}"]`);
+    if (existingCard) {
+        console.log(`Entidade ${entity.name} (${entity.id}) já existe na biblioteca. Ignorando.`);
+        return; // A entidade já está na lista, sair da função
+    }
+    
+    console.log(`Renderizando entidade na biblioteca: ${entity.name} (${entity.id})`);
+    
     const list = document.getElementById('entity-list');
+    if (!list) {
+        console.error("Elemento 'entity-list' não encontrado!");
+        return;
+    }
+    
     const template = document.getElementById('entity-card-template');
+    if (!template) {
+        console.error("Template 'entity-card-template' não encontrado!");
+        return;
+    }
+    
     const clone = template.content.cloneNode(true);
     const card = clone.querySelector('.entity-card');
     card.dataset.entityId = entity.id;

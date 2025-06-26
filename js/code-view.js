@@ -9,8 +9,11 @@ const fileStructure = {
     'js/main.js': { path: '../js/main.js', type: 'javascript' },
     'js/login.js': { path: '../js/login.js', type: 'javascript' },
     'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
+    'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },
+    'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'javascript' },
     'pages/login.html': { path: '../pages/login.html', type: 'html' },
-    'pages/code-view.html': { path: '../pages/code-view.html', type: 'html' }
+    'pages/code-view.html': { path: '../pages/code-view.html', type: 'html' },
+    'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' }
 };
 
 // Código fonte dos arquivos

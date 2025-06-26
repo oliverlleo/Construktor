@@ -16,10 +16,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
 
     <!-- Link para o ficheiro CSS externo -->
     <link rel="stylesheet" href="css/style.css">
-<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
 <body class="text-slate-800 bg-slate-50">
 
     <!-- Indicador de Carregamento Visual -->
@@ -35,10 +36,43 @@
                 <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
-                <div class="p-2 sm:p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg shadow-md">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <div class="relative">
+                    <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
+                        <div class="p-2 sm:p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg shadow-md">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
+                        <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                    </button>
+
+                    <div id="user-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
+                        <div class="p-2">
+                            <p class="text-xs text-slate-500">Logado como</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <img id="user-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-8 w-8 rounded-full">
+                                <span id="user-display-name" class="font-semibold text-slate-700">Carregando...</span>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <a href="#" id="edit-profile-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="settings-2" class="h-4 w-4"></i>
+                            <span>Configurações do Perfil</span>
+                        </a>
+                        <a href="#" id="invite-user-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="user-plus" class="h-4 w-4"></i>
+                            <span>Convidar</span>
+                        </a>
+                        <a href="#" id="manage-invites-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="inbox" class="h-4 w-4"></i>
+                            <span>Gerenciar Convites</span>
+                        </a>
+                        <hr class="my-2">
+                        <a href="#" id="logout-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="log-out" class="h-4 w-4"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
                 </div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
             </div>
             <div class="flex items-center gap-2 sm:gap-4">
                 <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
@@ -53,9 +87,8 @@
                     <i data-lucide="eye" class="h-4 w-4 sm:h-5 sm:w-5"></i>
                     <span class="font-medium">Ver Página</span>
                 </a>
-                <button id="logout-btn" class="text-slate-600 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100">
-                    <i data-lucide="log-out" class="h-5 w-5"></i>
-                </button>
+                <!-- Botão de logout removido pois agora está no menu do usuário -->
+                
             </div>
         </header>
 
@@ -189,6 +222,111 @@
             <button id="mobile-add-module-btn" class="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center">
                 <i data-lucide="plus" class="h-6 w-6"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Modal de Perfil de Usuário -->
+    <div id="profile-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 scale-95 opacity-0 transition-all duration-300">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold text-slate-800">Meu Perfil</h2>
+                <button id="close-profile-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative mb-4">
+                    <img id="modal-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-24 w-24 rounded-full border-4 border-white shadow-lg">
+                    <button id="change-avatar-button" class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-md hover:bg-indigo-700 transition-all">
+                        <i data-lucide="camera" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                <input type="file" id="avatar-upload-input" accept="image/*" class="hidden">
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Apelido</label>
+                    <input id="nickname-input" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                    <input id="email-input" type="email" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg" readonly>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancel-profile-button" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">Cancelar</button>
+                <button id="save-profile-button" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Convite -->
+    <div id="invite-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 scale-95 opacity-0 transition-all duration-300">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold text-slate-800">Convidar Usuário</h2>
+                <button id="close-invite-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            <p class="text-slate-600 mb-4">Convide outros usuários para acessar o sistema como administrador.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail do Usuário</label>
+                    <input id="invite-email-input" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="ex: usuario@email.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nível de Permissão</label>
+                    <select id="permission-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="admin">Administrador (Acesso Total)</option>
+                        <option value="editor" disabled>Editor (Em breve)</option>
+                        <option value="viewer" disabled>Leitor (Em breve)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancel-invite-button" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">Cancelar</button>
+                <button id="send-invite-button" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Enviar Convite</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Gerenciar Convites -->
+    <div id="manage-invites-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 scale-95 opacity-0 transition-all duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-slate-800">Gerenciar Convites</h2>
+                <button id="close-manage-invites-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            
+            <div class="flex mb-4">
+                <button id="tab-invites-sent" class="flex-1 py-2 px-4 text-center border-b-2 border-indigo-600 font-medium text-indigo-600">Enviados</button>
+                <button id="tab-invites-received" class="flex-1 py-2 px-4 text-center border-b-2 border-slate-200 font-medium text-slate-500">Recebidos</button>
+            </div>
+            
+            <div id="sent-invites-container" class="overflow-y-auto max-h-64">
+                <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-sent-invites">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <p>Você ainda não enviou nenhum convite</p>
+                </div>
+                <!-- Aqui serão adicionados os convites enviados dinamicamente -->
+                <div class="space-y-3" id="sent-invites-list">
+                    <!-- Exemplo de cartão de convite enviado -->
+                </div>
+            </div>
+            
+            <div id="received-invites-container" class="overflow-y-auto max-h-64 hidden">
+                <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-received-invites">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <p>Você não recebeu nenhum convite</p>
+                </div>
+                <!-- Aqui serão adicionados os convites recebidos dinamicamente -->
+                <div class="space-y-3" id="received-invites-list">
+                    <!-- Exemplo de cartão de convite recebido -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -628,6 +766,60 @@
                 <button class="delete-field-btn text-slate-500 hover:text-red-600 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-red-50" title="Eliminar Propriedade">
                     <i data-lucide="trash-2" class="h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para Convite Enviado -->
+    <template id="sent-invite-template">
+        <div class="invite-card bg-white rounded-lg border border-slate-200 shadow-sm p-3" data-invite-id="">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="mail" class="h-4 w-4 text-indigo-500"></i>
+                        <span class="invite-email font-medium text-slate-700"></span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs text-slate-500">
+                        <i data-lucide="clock" class="h-3 w-3"></i>
+                        <span class="invite-date"></span>
+                    </div>
+                    <div class="mt-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium invite-status-badge"></span>
+                    </div>
+                </div>
+                <button class="cancel-invite-btn text-slate-400 hover:text-red-500 p-1">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para Convite Recebido -->
+    <template id="received-invite-template">
+        <div class="invite-card bg-white rounded-lg border border-slate-200 shadow-sm p-3" data-invite-id="">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="user" class="h-4 w-4 text-indigo-500"></i>
+                        <span class="invite-sender font-medium text-slate-700"></span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs text-slate-500">
+                        <i data-lucide="clock" class="h-3 w-3"></i>
+                        <span class="invite-date"></span>
+                    </div>
+                    <div class="mt-1 text-xs text-slate-600">
+                        <span>Permissão: </span>
+                        <span class="invite-permission font-medium"></span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="accept-invite-btn text-emerald-600 hover:text-emerald-700 p-1">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                    </button>
+                    <button class="decline-invite-btn text-slate-400 hover:text-red-500 p-1">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </template>

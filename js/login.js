@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Configuração das abas
 function setupTabNavigation() {
-    const tabs = document.querySelectorAll('.auth-tab');
+    const tabs = document.querySelectorAll('.notion-auth-tab');
     
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -49,17 +49,25 @@ function setupTabNavigation() {
             tab.classList.add('active');
             
             // Esconde todos os painéis
-            document.querySelectorAll('.auth-panel').forEach(panel => {
-                panel.classList.add('hidden');
+            document.querySelectorAll('.notion-auth-panel').forEach(panel => {
+                panel.classList.remove('active');
+                panel.style.display = 'none';
             });
             
             // Mostra o painel correspondente à aba clicada
             const targetId = `content-${tab.dataset.tab}`;
-            document.getElementById(targetId).classList.remove('hidden');
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+                targetPanel.style.display = 'block';
+            }
             
             // Esconde outros painéis especiais
-            document.getElementById('phone-verification-panel').classList.add('hidden');
-            document.getElementById('password-recovery-panel').classList.add('hidden');
+            const phonePanel = document.getElementById('phone-verification-panel');
+            const recoveryPanel = document.getElementById('password-recovery-panel');
+            
+            if (phonePanel) phonePanel.style.display = 'none';
+            if (recoveryPanel) recoveryPanel.style.display = 'none';
         });
     });
 }
@@ -94,15 +102,23 @@ function setupLoginButtons() {
     const phoneLoginBtn = document.getElementById('phone-login');
     if (phoneLoginBtn) {
         phoneLoginBtn.addEventListener('click', () => {
-            // Esconde os painéis padrão
-            document.querySelectorAll('.auth-panel').forEach(panel => {
-                panel.classList.add('hidden');
+            // Esconde todos os painéis
+            document.querySelectorAll('.notion-auth-panel').forEach(panel => {
+                panel.classList.remove('active');
+                panel.style.display = 'none';
             });
             
             // Mostra o painel de verificação por telefone
-            document.getElementById('phone-verification-panel').classList.remove('hidden');
-            document.getElementById('phone-step-1').classList.remove('hidden');
-            document.getElementById('phone-step-2').classList.add('hidden');
+            const phonePanel = document.getElementById('phone-verification-panel');
+            if (phonePanel) {
+                phonePanel.style.display = 'block';
+                
+                const step1 = document.getElementById('phone-step-1');
+                const step2 = document.getElementById('phone-step-2');
+                
+                if (step1) step1.style.display = 'block';
+                if (step2) step2.style.display = 'none';
+            }
         });
     }
     
@@ -111,14 +127,27 @@ function setupLoginButtons() {
     if (backToLoginBtn) {
         backToLoginBtn.addEventListener('click', () => {
             // Esconde o painel de verificação
-            document.getElementById('phone-verification-panel').classList.add('hidden');
+            const phonePanel = document.getElementById('phone-verification-panel');
+            if (phonePanel) {
+                phonePanel.style.display = 'none';
+            }
             
             // Mostra o painel de login
-            document.getElementById('content-login').classList.remove('hidden');
+            const loginPanel = document.getElementById('content-login');
+            if (loginPanel) {
+                loginPanel.classList.add('active');
+                loginPanel.style.display = 'block';
+            }
             
             // Redefine as abas
             document.getElementById('tab-login').classList.add('active');
             document.getElementById('tab-register').classList.remove('active');
+            
+            // Limpa o reCAPTCHA container
+            const recaptchaContainer = document.getElementById('recaptcha-container');
+            if (recaptchaContainer) {
+                recaptchaContainer.innerHTML = '';
+            }
         });
     }
     
@@ -128,13 +157,17 @@ function setupLoginButtons() {
         forgotPasswordBtn.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Esconde os painéis padrão
-            document.querySelectorAll('.auth-panel').forEach(panel => {
-                panel.classList.add('hidden');
+            // Esconde todos os painéis
+            document.querySelectorAll('.notion-auth-panel').forEach(panel => {
+                panel.classList.remove('active');
+                panel.style.display = 'none';
             });
             
             // Mostra o painel de recuperação de senha
-            document.getElementById('password-recovery-panel').classList.remove('hidden');
+            const recoveryPanel = document.getElementById('password-recovery-panel');
+            if (recoveryPanel) {
+                recoveryPanel.style.display = 'block';
+            }
         });
     }
     
@@ -165,9 +198,6 @@ function setupLoginButtons() {
 
 // Configuração de verificação por telefone
 function setupPhoneVerification() {
-    // Configuração do recaptcha
-    const recaptchaContainer = document.getElementById('recaptcha-container');
-    
     // Botão para enviar código
     const sendCodeBtn = document.getElementById('send-code-btn');
     if (sendCodeBtn) {
@@ -177,6 +207,12 @@ function setupPhoneVerification() {
             if (!phoneNumber) {
                 showError('Número inválido', 'Por favor, digite um número de telefone válido.');
                 return;
+            }
+            
+            // Limpa qualquer recaptcha existente
+            const recaptchaContainer = document.getElementById('recaptcha-container');
+            if (recaptchaContainer) {
+                recaptchaContainer.innerHTML = '';
             }
             
             // Configura o reCAPTCHA
@@ -200,13 +236,14 @@ function setupPhoneVerification() {
     }
     
     // Configuração dos inputs de código de verificação
-    const codeInputs = document.querySelectorAll('.verification-code-input');
+    const codeInputs = document.querySelectorAll('.notion-code-input');
     codeInputs.forEach(input => {
         input.addEventListener('input', (e) => {
             // Move para o próximo input automaticamente
             const index = parseInt(e.target.dataset.index);
             if (e.target.value && index < 6) {
-                document.querySelector(`.verification-code-input[data-index="${index + 1}"]`).focus();
+                const nextInput = document.querySelector(`.notion-code-input[data-index="${index + 1}"]`);
+                if (nextInput) nextInput.focus();
             }
         });
         
@@ -214,7 +251,8 @@ function setupPhoneVerification() {
             // Move para o input anterior ao pressionar Backspace em um input vazio
             const index = parseInt(e.target.dataset.index);
             if (e.key === 'Backspace' && !e.target.value && index > 1) {
-                document.querySelector(`.verification-code-input[data-index="${index - 1}"]`).focus();
+                const prevInput = document.querySelector(`.notion-code-input[data-index="${index - 1}"]`);
+                if (prevInput) prevInput.focus();
             }
         });
     });
@@ -246,6 +284,12 @@ function setupPhoneVerification() {
             if (!phoneNumber) {
                 showError('Número inválido', 'Por favor, digite um número de telefone válido.');
                 return;
+            }
+            
+            // Limpa qualquer recaptcha existente
+            const recaptchaContainer = document.getElementById('recaptcha-container');
+            if (recaptchaContainer) {
+                recaptchaContainer.innerHTML = '';
             }
             
             // Reconfigura o reCAPTCHA
@@ -287,10 +331,17 @@ function setupPasswordRecovery() {
     if (backToLoginFromRecoveryBtn) {
         backToLoginFromRecoveryBtn.addEventListener('click', () => {
             // Esconde o painel de recuperação
-            document.getElementById('password-recovery-panel').classList.add('hidden');
+            const recoveryPanel = document.getElementById('password-recovery-panel');
+            if (recoveryPanel) {
+                recoveryPanel.style.display = 'none';
+            }
             
             // Mostra o painel de login
-            document.getElementById('content-login').classList.remove('hidden');
+            const loginPanel = document.getElementById('content-login');
+            if (loginPanel) {
+                loginPanel.classList.add('active');
+                loginPanel.style.display = 'block';
+            }
             
             // Redefine as abas
             document.getElementById('tab-login').classList.add('active');
@@ -381,11 +432,15 @@ async function sendVerificationCode(phoneNumber, appVerifier) {
         hideLoading();
         
         // Avança para o próximo passo
-        document.getElementById('phone-step-1').classList.add('hidden');
-        document.getElementById('phone-step-2').classList.remove('hidden');
+        const step1 = document.getElementById('phone-step-1');
+        const step2 = document.getElementById('phone-step-2');
+        
+        if (step1) step1.style.display = 'none';
+        if (step2) step2.style.display = 'block';
         
         // Foca no primeiro input do código
-        document.querySelector('.verification-code-input[data-index="1"]').focus();
+        const firstInput = document.querySelector('.notion-code-input[data-index="1"]');
+        if (firstInput) firstInput.focus();
         
         showSuccess('Código enviado!', 'Um código de verificação foi enviado para o número informado.');
     } catch (error) {
@@ -443,8 +498,18 @@ async function sendPasswordResetEmail(email) {
         
         // Volta para a tela de login após alguns segundos
         setTimeout(() => {
-            document.getElementById('password-recovery-panel').classList.add('hidden');
-            document.getElementById('content-login').classList.remove('hidden');
+            // Esconde o painel de recuperação
+            const recoveryPanel = document.getElementById('password-recovery-panel');
+            if (recoveryPanel) {
+                recoveryPanel.style.display = 'none';
+            }
+            
+            // Mostra o painel de login
+            const loginPanel = document.getElementById('content-login');
+            if (loginPanel) {
+                loginPanel.classList.add('active');
+                loginPanel.style.display = 'block';
+            }
         }, 3000);
     } catch (error) {
         hideLoading();
@@ -471,6 +536,8 @@ function showLoading(message = 'Carregando...') {
                 Swal.showLoading();
             }
         });
+    } else {
+        console.log('Carregando: ' + message);
     }
 }
 
