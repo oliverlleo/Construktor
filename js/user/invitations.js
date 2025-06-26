@@ -6,6 +6,7 @@
 import { getUsuarioAtual, getUsuarioId, getUsuarioNome, getUsuarioEmail } from '../autenticacao.js';
 import { showSuccess, showError, showLoading, hideLoading } from '../ui.js';
 import { getUserProfileData } from './userProfile.js';
+import { loadSharedResources } from '../database.js';
 
 // Variáveis do módulo
 let db;
@@ -69,6 +70,7 @@ function setupManageInvitesModal() {
     const closeManageInvitesModal = document.getElementById('close-manage-invites-modal');
     const tabInvitesSent = document.getElementById('tab-invites-sent');
     const tabInvitesReceived = document.getElementById('tab-invites-received');
+    const tabInvitesAccess = document.getElementById('tab-invites-access');
     
     // Abrir o modal
     manageInvitesButton.addEventListener('click', async () => {
@@ -87,8 +89,12 @@ function setupManageInvitesModal() {
             updateInvitesTabUI();
         }
         
-        // Carrega os convites
-        loadInvites(activeTab);
+        // Carrega os convites ou acessos compartilhados
+        if (activeTab === 'access') {
+            loadSharedAccess();
+        } else {
+            loadInvites(activeTab);
+        }
     });
     
     // Fechar o modal
@@ -116,7 +122,15 @@ function setupManageInvitesModal() {
         loadInvites('received');
     });
     
-    // Delegação de eventos para os convites
+    tabInvitesAccess.addEventListener('click', () => {
+        if (activeTab === 'access') return;
+        
+        activeTab = 'access';
+        updateInvitesTabUI();
+        loadSharedAccess();
+    });
+    
+    // Delegação de eventos para os convites e acessos
     manageInvitesModal.addEventListener('click', async (event) => {
         // Cancelar convite enviado
         const cancelBtn = event.target.closest('.cancel-invite-btn');
@@ -144,6 +158,49 @@ function setupManageInvitesModal() {
             await declineInvite(inviteId);
             return;
         }
+        
+        // Salvar alteração de permissão
+        const savePermissionBtn = event.target.closest('.save-permission-btn');
+        if (savePermissionBtn) {
+            const accessItem = savePermissionBtn.closest('.shared-access-item');
+            const userId = accessItem.dataset.userId;
+            const email = accessItem.dataset.email;
+            const resourceId = accessItem.dataset.resourceId;
+            const permissionSelect = accessItem.querySelector('.permission-select');
+            const newRole = permissionSelect.value;
+            
+            if (userId && resourceId && newRole) {
+                await updateUserPermission(userId, resourceId, newRole, email);
+                savePermissionBtn.classList.add('hidden');
+            }
+            return;
+        }
+        
+        // Remover acesso de usuário
+        const removeAccessBtn = event.target.closest('.remove-access-btn');
+        if (removeAccessBtn) {
+            const accessItem = removeAccessBtn.closest('.shared-access-item');
+            const userId = accessItem.dataset.userId;
+            const email = accessItem.dataset.email;
+            
+            if (userId && email) {
+                const confirmRemove = await Swal.fire({
+                    title: 'Remover acesso',
+                    text: `Tem certeza que deseja remover o acesso de ${email}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim, remover',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6'
+                });
+                
+                if (confirmRemove.isConfirmed) {
+                    await removeUserAccess(userId);
+                }
+            }
+            return;
+        }
     });
 }
 
@@ -153,32 +210,39 @@ function setupManageInvitesModal() {
 function updateInvitesTabUI() {
     const tabSent = document.getElementById('tab-invites-sent');
     const tabReceived = document.getElementById('tab-invites-received');
+    const tabAccess = document.getElementById('tab-invites-access');
     const sentContainer = document.getElementById('sent-invites-container');
     const receivedContainer = document.getElementById('received-invites-container');
+    const accessContainer = document.getElementById('access-management-container');
     
+    // Primeiro, resetamos todos os estilos e ocultamos todos os containers
+    [tabSent, tabReceived, tabAccess].forEach(tab => {
+        tab.classList.remove('border-indigo-600', 'text-indigo-600');
+        tab.classList.add('border-slate-200', 'text-slate-500');
+    });
+    
+    [sentContainer, receivedContainer, accessContainer].forEach(container => {
+        container.classList.add('hidden');
+    });
+    
+    // Depois, configuramos a aba ativa
     if (activeTab === 'sent') {
         tabSent.classList.remove('border-slate-200', 'text-slate-500');
         tabSent.classList.add('border-indigo-600', 'text-indigo-600');
-        
-        tabReceived.classList.remove('border-indigo-600', 'text-indigo-600');
-        tabReceived.classList.add('border-slate-200', 'text-slate-500');
-        
         sentContainer.classList.remove('hidden');
-        receivedContainer.classList.add('hidden');
-    } else {
+    } else if (activeTab === 'received') {
         tabReceived.classList.remove('border-slate-200', 'text-slate-500');
         tabReceived.classList.add('border-indigo-600', 'text-indigo-600');
-        
-        tabSent.classList.remove('border-indigo-600', 'text-indigo-600');
-        tabSent.classList.add('border-slate-200', 'text-slate-500');
-        
         receivedContainer.classList.remove('hidden');
-        sentContainer.classList.add('hidden');
+    } else if (activeTab === 'access') {
+        tabAccess.classList.remove('border-slate-200', 'text-slate-500');
+        tabAccess.classList.add('border-indigo-600', 'text-indigo-600');
+        accessContainer.classList.remove('hidden');
     }
     
     // Atualiza os ícones para garantir que eles sejam renderizados corretamente
     if (window.lucide) {
-        lucide.createIcons();
+        window.lucide.createIcons();
     }
 }
 
@@ -376,9 +440,9 @@ function renderSentInvite(invite, container) {
     statusBadge.textContent = statusText;
     
     // O botão de cancelar só aparece se o status for 'pending'
-    const cancelBtn = clone.querySelector('.cancel-invite-btn');
+    const cancelContainer = clone.querySelector('.cancel-invite-container');
     if (invite.status !== 'pending') {
-        cancelBtn.style.display = 'none';
+        cancelContainer.style.display = 'none';
     }
     
     container.appendChild(clone);
@@ -441,11 +505,14 @@ async function cancelInvite(inviteId) {
     }
     
     try {
+        showLoading('Cancelando convite...');
+        
         // Verifica se o convite existe e pertence ao usuário atual
         const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
         const invite = inviteSnapshot.val();
         
         if (!invite || invite.fromUserId !== userId) {
+            hideLoading();
             showError('Erro', 'Convite não encontrado ou não autorizado.');
             return;
         }
@@ -464,12 +531,17 @@ async function cancelInvite(inviteId) {
             statusBadge.className = `inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`;
             statusBadge.textContent = statusText;
             
-            // Esconde o botão de cancelar
-            inviteCard.querySelector('.cancel-invite-btn').style.display = 'none';
+            // Esconde o container do botão de cancelar
+            const cancelContainer = inviteCard.querySelector('.cancel-invite-container');
+            if (cancelContainer) {
+                cancelContainer.style.display = 'none';
+            }
         }
         
+        hideLoading();
         showSuccess('Convite cancelado', 'O convite foi cancelado com sucesso.');
     } catch (error) {
+        hideLoading();
         console.error('Erro ao cancelar convite:', error);
         showError('Erro', 'Ocorreu um erro ao cancelar o convite.');
     }
@@ -717,6 +789,259 @@ function formatPermission(role) {
             return 'Leitor';
         default:
             return role || 'Desconhecido';
+    }
+}
+
+/**
+ * Carrega e exibe os acessos compartilhados
+ */
+async function loadSharedAccess() {
+    const userId = getUsuarioId();
+    
+    if (!userId) {
+        showError('Erro', 'Usuário não autenticado.');
+        return;
+    }
+    
+    showLoading('Carregando usuários com acesso...');
+    
+    try {
+        // Busca todos os convites aceitos que o usuário enviou
+        const query = db.ref('invitations')
+            .orderByChild('fromUserId')
+            .equalTo(userId);
+        
+        const snapshot = await query.once('value');
+        const sharedAccess = [];
+        
+        snapshot.forEach(childSnapshot => {
+            const invite = childSnapshot.val();
+            // Considera apenas convites aceitos
+            if (invite.status === 'accepted') {
+                sharedAccess.push({
+                    id: childSnapshot.key,
+                    userId: invite.toUserId,
+                    email: invite.toEmail,
+                    resourceId: invite.resourceId,
+                    resourceType: invite.resourceType,
+                    role: invite.role,
+                    acceptedAt: invite.acceptedAt
+                });
+            }
+        });
+        
+        // Renderiza os usuários com acesso
+        renderSharedAccess(sharedAccess);
+        hideLoading();
+    } catch (error) {
+        console.error('Erro ao carregar usuários com acesso:', error);
+        hideLoading();
+        showError('Erro', 'Ocorreu um erro ao carregar os usuários com acesso.');
+    }
+}
+
+/**
+ * Renderiza os usuários com acesso compartilhado
+ * @param {Array} accessList - Lista de usuários com acesso
+ */
+function renderSharedAccess(accessList) {
+    const container = document.getElementById('shared-access-list');
+    const emptyContainer = document.getElementById('no-shared-access');
+    
+    container.innerHTML = '';
+    
+    if (accessList.length === 0) {
+        container.classList.add('hidden');
+        emptyContainer.classList.remove('hidden');
+        return;
+    }
+    
+    container.classList.remove('hidden');
+    emptyContainer.classList.add('hidden');
+    
+    // Ordena pela data de aceitação, mais recente primeiro
+    accessList.sort((a, b) => (b.acceptedAt || 0) - (a.acceptedAt || 0));
+    
+    accessList.forEach(access => {
+        renderSharedAccessItem(access, container);
+    });
+    
+    // Atualiza os ícones Lucide
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
+/**
+ * Renderiza um item de acesso compartilhado
+ * @param {Object} access - Dados do acesso
+ * @param {HTMLElement} container - Container onde o item será renderizado
+ */
+function renderSharedAccessItem(access, container) {
+    const template = document.getElementById('shared-access-template');
+    const clone = document.importNode(template.content, true);
+    
+    const accessItem = clone.querySelector('.shared-access-item');
+    accessItem.dataset.userId = access.userId || '';
+    accessItem.dataset.email = access.email || '';
+    accessItem.dataset.resourceId = access.resourceId || '';
+    accessItem.dataset.role = access.role || '';
+    
+    const emailEl = clone.querySelector('.user-email');
+    emailEl.textContent = access.email || 'Email desconhecido';
+    
+    const permissionSelect = clone.querySelector('.permission-select');
+    permissionSelect.value = access.role || 'viewer';
+    
+    // Adiciona eventos para o dropdown de permissão
+    permissionSelect.addEventListener('change', function() {
+        const saveBtn = accessItem.querySelector('.save-permission-btn');
+        saveBtn.classList.remove('hidden');
+    });
+    
+    container.appendChild(clone);
+}
+
+/**
+ * Atualiza a permissão de um usuário
+ * @param {string} userId - ID do usuário
+ * @param {string} resourceId - ID do recurso
+ * @param {string} newRole - Nova permissão
+ * @param {string} email - Email do usuário
+ */
+async function updateUserPermission(userId, resourceId, newRole, email) {
+    if (!userId || !resourceId || !newRole) {
+        showError('Erro', 'Dados inválidos para atualizar permissão.');
+        return;
+    }
+    
+    showLoading('Atualizando permissão...');
+    
+    try {
+        const currentUserId = getUsuarioId();
+        
+        // Busca o convite aceito correspondente
+        const invitesQuery = db.ref('invitations')
+            .orderByChild('fromUserId')
+            .equalTo(currentUserId);
+        
+        const snapshot = await invitesQuery.once('value');
+        const updates = {};
+        let found = false;
+        
+        snapshot.forEach(childSnapshot => {
+            const invite = childSnapshot.val();
+            if (invite.status === 'accepted' && 
+                invite.toEmail === email && 
+                invite.resourceId === resourceId) {
+                
+                // Atualiza a permissão no convite
+                updates[`invitations/${childSnapshot.key}/role`] = newRole;
+                updates[`invitations/${childSnapshot.key}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
+                
+                // Atualiza a permissão no controle de acesso
+                updates[`accessControl/${userId}/${resourceId}`] = newRole;
+                
+                found = true;
+            }
+        });
+        
+        if (!found) {
+            hideLoading();
+            showError('Erro', 'Convite não encontrado para atualizar.');
+            return;
+        }
+        
+        // Aplica todas as atualizações
+        await db.ref().update(updates);
+        
+        // Atualiza o dataset do item na UI
+        const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
+        if (accessItem) {
+            accessItem.dataset.role = newRole;
+        }
+        
+        hideLoading();
+        showSuccess('Permissão atualizada', `A permissão de ${email} foi alterada para ${formatPermission(newRole)}.`);
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao atualizar permissão:', error);
+        showError('Erro', 'Ocorreu um erro ao atualizar a permissão.');
+    }
+}
+
+/**
+ * Remove o acesso de um usuário
+ * @param {string} userId - ID do usuário a ter o acesso removido
+ */
+async function removeUserAccess(userId) {
+    if (!userId) {
+        showError('Erro', 'ID de usuário inválido.');
+        return;
+    }
+    
+    showLoading('Removendo acesso...');
+    
+    try {
+        const currentUserId = getUsuarioId();
+        
+        // Busca todos os convites aceitos para este usuário
+        const invitesQuery = db.ref('invitations')
+            .orderByChild('fromUserId')
+            .equalTo(currentUserId);
+        
+        const snapshot = await invitesQuery.once('value');
+        const updates = {};
+        let found = false;
+        
+        snapshot.forEach(childSnapshot => {
+            const invite = childSnapshot.val();
+            if (invite.status === 'accepted' && invite.toEmail) {
+                // Verifica se é o usuário correto através do email
+                const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
+                if (accessItem && accessItem.dataset.email === invite.toEmail) {
+                    // Marca o convite como revogado
+                    updates[`invitations/${childSnapshot.key}/status`] = 'revoked';
+                    updates[`invitations/${childSnapshot.key}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
+                    
+                    // Remove o acesso no controle de acesso
+                    if (invite.resourceId) {
+                        updates[`accessControl/${userId}/${invite.resourceId}`] = null;
+                    }
+                    
+                    found = true;
+                }
+            }
+        });
+        
+        if (!found) {
+            hideLoading();
+            showError('Erro', 'Nenhum acesso encontrado para este usuário.');
+            return;
+        }
+        
+        // Aplica todas as atualizações em uma única transação
+        await db.ref().update(updates);
+        
+        // Remove o item da UI
+        const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
+        if (accessItem) {
+            accessItem.remove();
+            
+            // Verifica se ainda existem itens
+            const accessList = document.getElementById('shared-access-list');
+            if (accessList.children.length === 0) {
+                document.getElementById('no-shared-access').classList.remove('hidden');
+                accessList.classList.add('hidden');
+            }
+        }
+        
+        hideLoading();
+        showSuccess('Acesso removido', 'O acesso do usuário foi removido com sucesso.');
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao remover acesso:', error);
+        showError('Erro', 'Ocorreu um erro ao remover o acesso do usuário.');
     }
 }
 

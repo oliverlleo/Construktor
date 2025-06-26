@@ -11,6 +11,55 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+    <script>
+        // Configuração para garantir que os ícones Lucide sejam registrados corretamente
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.lucide) {
+                // Inicialização única do Lucide para evitar loops infinitos
+                let isUpdatingIcons = false;
+                
+                function updateLucideIcons() {
+                    if (isUpdatingIcons) return;
+                    isUpdatingIcons = true;
+                    
+                    try {
+                        lucide.createIcons();
+                    } catch (error) {
+                        console.warn('Erro ao atualizar ícones:', error);
+                    } finally {
+                        isUpdatingIcons = false;
+                    }
+                }
+                
+                // Inicialização inicial
+                updateLucideIcons();
+                
+                // Observador otimizado com debounce
+                let timeout;
+                const observer = new MutationObserver(function(mutations) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        const hasNewNodes = mutations.some(mutation => 
+                            mutation.addedNodes && 
+                            Array.from(mutation.addedNodes).some(node => 
+                                node.nodeType === 1 && 
+                                (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))
+                            )
+                        );
+                        
+                        if (hasNewNodes) {
+                            updateLucideIcons();
+                        }
+                    }, 100);
+                });
+                
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
+    </script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
@@ -20,7 +69,7 @@
 
     <!-- Link para o ficheiro CSS externo -->
     <link rel="stylesheet" href="css/style.css">
-<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
 <body class="text-slate-800 bg-slate-50">
 
     <!-- Indicador de Carregamento Visual -->
@@ -352,6 +401,9 @@
                     Recebidos
                     <span id="received-invites-badge" class="absolute hidden top-1 right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
                 </button>
+                <button id="tab-invites-access" class="flex-1 py-2 px-4 text-center border-b-2 border-slate-200 font-medium text-slate-500">
+                    Acessos
+                </button>
             </div>
             
             <div id="sent-invites-container" class="overflow-y-auto max-h-64">
@@ -373,6 +425,17 @@
                 <!-- Aqui serão adicionados os convites recebidos dinamicamente -->
                 <div class="space-y-3" id="received-invites-list">
                     <!-- Exemplo de cartão de convite recebido -->
+                </div>
+            </div>
+            
+            <div id="access-management-container" class="overflow-y-auto max-h-64 hidden">
+                <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-shared-access">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <p>Nenhum usuário com acesso compartilhado encontrado</p>
+                </div>
+                <!-- Aqui serão adicionados os usuários com acesso compartilhado -->
+                <div class="space-y-3" id="shared-access-list">
+                    <!-- Os usuários com acesso serão adicionados aqui dinamicamente -->
                 </div>
             </div>
         </div>
@@ -821,23 +884,29 @@
     <!-- Template para Convite Enviado -->
     <template id="sent-invite-template">
         <div class="invite-card bg-white rounded-lg border border-slate-200 shadow-sm p-3" data-invite-id="">
-            <div class="flex justify-between items-start">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <i data-lucide="mail" class="h-4 w-4 text-indigo-500"></i>
-                        <span class="invite-email font-medium text-slate-700"></span>
-                    </div>
-                    <div class="flex items-center gap-1 text-xs text-slate-500">
-                        <i data-lucide="clock" class="h-3 w-3"></i>
-                        <span class="invite-date"></span>
-                    </div>
-                    <div class="mt-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium invite-status-badge"></span>
+            <div class="flex flex-col">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <i data-lucide="mail" class="h-4 w-4 text-indigo-500"></i>
+                            <span class="invite-email font-medium text-slate-700"></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-slate-500">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            <span class="invite-date"></span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium invite-status-badge"></span>
+                        </div>
                     </div>
                 </div>
-                <button class="cancel-invite-btn text-slate-400 hover:text-red-500 p-1">
-                    <i data-lucide="x" class="h-4 w-4"></i>
-                </button>
+                
+                <div class="flex gap-2 mt-3 justify-end cancel-invite-container">
+                    <button class="cancel-invite-btn text-slate-700 hover:text-red-500 px-3 py-1.5 flex items-center gap-1 rounded-md bg-slate-50">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                        <span class="text-sm font-medium">Cancelar</span>
+                    </button>
+                </div>
             </div>
         </div>
     </template>
@@ -894,6 +963,41 @@
                     <i data-lucide="log-in" class="h-4 w-4"></i>
                     <span>Acessar</span>
                 </button>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Template para Usuário com Acesso Compartilhado -->
+    <template id="shared-access-template">
+        <div class="shared-access-item bg-white rounded-lg border border-slate-200 shadow-sm p-3" data-user-id="" data-email="" data-resource-id="" data-role="">
+            <div class="flex flex-col">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i data-lucide="user" class="h-4 w-4 text-indigo-500"></i>
+                            <span class="user-email font-medium text-slate-700"></span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-slate-600">Permissão:</span>
+                            <select class="permission-select text-xs border border-slate-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <option value="admin">Administrador</option>
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Leitor</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 mt-3 justify-end">
+                    <button class="save-permission-btn text-emerald-600 hover:text-emerald-700 px-3 py-1.5 flex items-center gap-1 rounded-md bg-emerald-50 hidden">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                        <span class="text-sm font-medium">Salvar</span>
+                    </button>
+                    <button class="remove-access-btn text-slate-700 hover:text-red-500 px-3 py-1.5 flex items-center gap-1 rounded-md bg-slate-50">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        <span class="text-sm font-medium">Remover</span>
+                    </button>
+                </div>
             </div>
         </div>
     </template>
