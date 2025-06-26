@@ -271,18 +271,16 @@ export async function createModule(name, workspaceId = 'default') {
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
  * @param {string} entityName - Nome da entidade
- * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function saveEntityToModule(moduleId, entityId, entityName, workspaceId = 'default') {
+export async function saveEntityToModule(moduleId, entityId, entityName) {
     try {
         const userId = getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        // Caminho corrigido para incluir workspaceId
-        const path = `users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`;
+        const path = `users/${userId}/schemas/${moduleId}/${entityId}`;
         const snapshot = await db.ref(path).get();
         
         if (!snapshot.exists()) {
@@ -299,18 +297,16 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
  * Remove uma entidade de um módulo
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
- * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function deleteEntityFromModule(moduleId, entityId, workspaceId = 'default') {
+export async function deleteEntityFromModule(moduleId, entityId) {
     try {
         const userId = getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        // Caminho corrigido para incluir workspaceId
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).remove();
+        await db.ref(`users/${userId}/schemas/${moduleId}/${entityId}`).remove();
     } catch (error) {
         console.error("Erro ao remover entidade do módulo:", error);
         showError('Erro ao Remover', 'Não foi possível remover a entidade do módulo.');
@@ -321,10 +317,9 @@ export async function deleteEntityFromModule(moduleId, entityId, workspaceId = '
 /**
  * Remove uma entidade permanentemente
  * @param {string} entityId - ID da entidade
- * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function deleteEntity(entityId, workspaceId = 'default') {
+export async function deleteEntity(entityId) {
     try {
         showLoading('Excluindo entidade...');
         
@@ -334,14 +329,14 @@ export async function deleteEntity(entityId, workspaceId = 'default') {
         }
         
         // Remove a entidade da lista de entidades
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/entities/${entityId}`).remove();
+        await db.ref(`users/${userId}/entities/${entityId}`).remove();
         
         // Remove a entidade de todos os módulos
-        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas`).get();
+        const snapshot = await db.ref(`users/${userId}/schemas`).get();
         if (snapshot.exists()) {
             const updates = {};
             for (const moduleId in snapshot.val()) { 
-                updates[`/users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`] = null;
+                updates[`/users/${userId}/schemas/${moduleId}/${entityId}`] = null;
             }
             await db.ref().update(updates);
         }
@@ -361,10 +356,9 @@ export async function deleteEntity(entityId, workspaceId = 'default') {
 /**
  * Remove um módulo permanentemente
  * @param {string} moduleId - ID do módulo
- * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function deleteModule(moduleId, workspaceId = 'default') {
+export async function deleteModule(moduleId) {
     try {
         showLoading('Excluindo módulo...');
         
@@ -374,14 +368,14 @@ export async function deleteModule(moduleId, workspaceId = 'default') {
         }
         
         // Remove o módulo
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/modules/${moduleId}`).remove();
+        await db.ref(`users/${userId}/modules/${moduleId}`).remove();
         
         // Remove os schemas associados ao módulo
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}`).remove();
+        await db.ref(`users/${userId}/schemas/${moduleId}`).remove();
         
         // Atualiza a ordem de módulos
         modulesOrder = modulesOrder.filter(id => id !== moduleId);
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/modules_order`).set(modulesOrder);
+        await db.ref(`users/${userId}/modules_order`).set(modulesOrder);
         
         hideLoading();
     } catch (error) {
@@ -398,10 +392,9 @@ export async function deleteModule(moduleId, workspaceId = 'default') {
  * @param {string} entityId - ID da entidade
  * @param {string} entityName - Nome da entidade
  * @param {Array} attributes - Atributos da entidade
- * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function saveEntityStructure(moduleId, entityId, entityName, attributes, workspaceId = 'default') {
+export async function saveEntityStructure(moduleId, entityId, entityName, attributes) {
     try {
         showLoading('Salvando estrutura...');
         
@@ -411,8 +404,7 @@ export async function saveEntityStructure(moduleId, entityId, entityName, attrib
         }
         
         const schema = { entityName, attributes };
-        // Caminho corrigido para incluir workspaceId
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).set(schema);
+        await db.ref(`users/${userId}/schemas/${moduleId}/${entityId}`).set(schema);
         
         hideLoading();
     } catch (error) {

@@ -17,24 +17,13 @@ let sharedWorkspaces = [];
  * Inicializa o módulo de áreas de trabalho
  * @param {Object} database - Referência ao banco de dados Firebase
  */
-export async function initWorkspaces(database) {
+export function initWorkspaces(database) {
     console.log('Inicializando módulo de áreas de trabalho...');
     db = database;
     
     setupWorkspaceSelector();
-    
-    // Carrega as áreas de trabalho próprias e compartilhadas
-    await loadUserWorkspaces();
-    await _loadSharedWorkspaces();
-    
-    // Configura listener para mudanças no controle de acesso
-    const userId = getUsuarioId();
-    if (userId) {
-        db.ref(`accessControl/${userId}`).on('value', snapshot => {
-            console.log("Mudança detectada no controle de acesso:", snapshot.val());
-            _loadSharedWorkspaces();
-        });
-    }
+    loadUserWorkspaces();
+    loadSharedWorkspaces();
 }
 
 /**
@@ -56,23 +45,6 @@ function setupWorkspaceSelector() {
     const shareWorkspaceBtn = document.getElementById('share-workspace-btn');
     if (shareWorkspaceBtn) {
         shareWorkspaceBtn.addEventListener('click', shareCurrentWorkspace);
-    }
-    
-    // Configurar botão de atualizar recursos compartilhados
-    const refreshSharedBtn = document.getElementById('refresh-shared-resources');
-    if (refreshSharedBtn) {
-        refreshSharedBtn.addEventListener('click', async () => {
-            showLoading('Atualizando recursos compartilhados...');
-            try {
-                await _loadSharedWorkspaces();
-                showSuccess('Atualizado!', 'Recursos compartilhados atualizados com sucesso.');
-            } catch (error) {
-                showError('Erro', 'Falha ao atualizar recursos compartilhados.');
-                console.error('Erro ao atualizar recursos compartilhados:', error);
-            } finally {
-                hideLoading();
-            }
-        });
     }
 }
 
@@ -117,7 +89,55 @@ async function loadUserWorkspaces() {
     }
 }
 
-// Função removida - versão atualizada está mais abaixo no arquivo
+/**
+ * Carrega as áreas de trabalho compartilhadas com o usuário
+ */
+async function loadSharedWorkspaces() {
+    try {
+        const userId = getUsuarioId();
+        const userEmail = getUsuarioEmail()?.toLowerCase();
+        
+        if (!userId || !userEmail) return [];
+        
+        console.log("Carregando áreas de trabalho compartilhadas para:", userEmail);
+        
+        // Busca convites aceitos para áreas de trabalho
+        const invitationsSnapshot = await db.ref('invitations')
+            .orderByChild('toEmail')
+            .equalTo(userEmail)
+            .get();
+        
+        sharedWorkspaces = [];
+        
+        if (invitationsSnapshot.exists()) {
+            for (const [inviteId, invite] of Object.entries(invitationsSnapshot.val())) {
+                if (invite.status === 'accepted' && invite.resourceType === 'workspace') {
+                    // Busca informações da área de trabalho
+                    const workspaceSnapshot = await db.ref(`users/${invite.fromUserId}/workspaces/${invite.resourceId}`).get();
+                    
+                    if (workspaceSnapshot.exists()) {
+                        const workspaceData = workspaceSnapshot.val();
+                        sharedWorkspaces.push({
+                            id: invite.resourceId,
+                            ...workspaceData,
+                            isOwner: false,
+                            ownerId: invite.fromUserId,
+                            ownerName: invite.fromUserName,
+                            role: invite.role
+                        });
+                    }
+                }
+            }
+        }
+        
+        console.log("Áreas de trabalho compartilhadas carregadas:", sharedWorkspaces);
+        updateSharedWorkspacesDisplay();
+        return sharedWorkspaces;
+    } catch (error) {
+        console.error('Erro ao carregar áreas de trabalho compartilhadas:', error);
+        return [];
+    }
+}
 
 /**
  * Cria uma área de trabalho padrão
@@ -430,28 +450,18 @@ function updateSharedWorkspacesDisplay() {
     
     if (!container || !emptyMessage) return;
     
-    console.log("Atualizando exibição de workspaces compartilhados:", sharedWorkspaces.length);
     container.innerHTML = '';
     
     if (sharedWorkspaces.length === 0) {
         container.classList.add('hidden');
         emptyMessage.classList.remove('hidden');
-        console.log("Nenhum workspace compartilhado encontrado, mostrando mensagem vazia");
     } else {
         container.classList.remove('hidden');
         emptyMessage.classList.add('hidden');
         
         sharedWorkspaces.forEach(workspace => {
-            console.log("Renderizando workspace compartilhado:", workspace);
             renderSharedWorkspace(workspace, container);
         });
-        
-        // Atualiza os ícones para garantir que eles sejam renderizados
-        setTimeout(() => {
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        }, 100);
     }
 }
 
@@ -535,151 +545,9 @@ export function getSharedWorkspaces() {
 }
 
 /**
- * Carrega as áreas de trabalho compartilhadas com o usuário
- * Exposta para que possa ser chamada de outros módulos
- */
-export async function loadSharedWorkspaces() {
-    return await _loadSharedWorkspaces();
-}
-
-// Implementação interna
-async function _loadSharedWorkspaces() {
-    try {
-        const userId = getUsuarioId();
-        const userEmail = getUsuarioEmail()?.toLowerCase();
-        
-        if (!userId || !userEmail) return [];
-        
-        console.log("Carregando áreas de trabalho compartilhadas para:", userEmail);
-        
-        // Busca convites aceitos para áreas de trabalho
-        const invitationsSnapshot = await db.ref('invitations')
-            .orderByChild('toEmail')
-            .equalTo(userEmail)
-            .get();
-        
-        sharedWorkspaces = [];
-        
-        if (invitationsSnapshot.exists()) {
-            console.log("Convites encontrados:", invitationsSnapshot.val());
-            
-            // Verifica a tabela de controle de acesso do usuário
-            const accessSnapshot = await db.ref(`accessControl/${userId}`).get();
-            const accessControl = accessSnapshot.exists() ? accessSnapshot.val() : {};
-            console.log("Controle de acesso:", accessControl);
-            
-            for (const [inviteId, invite] of Object.entries(invitationsSnapshot.val())) {
-                console.log(`Processando convite ${inviteId}:`, invite);
-                
-                // Verifica se o convite foi aceito e é para uma área de trabalho
-                if (invite.status === 'accepted' && invite.resourceType === 'workspace') {
-                    // Verifica se temos acesso registrado para este recurso
-                    const hasAccess = Object.keys(accessControl).includes(invite.resourceId);
-                    console.log(`Acesso para ${invite.resourceId}:`, hasAccess);
-                    
-                    if (hasAccess) {
-                        // Busca informações da área de trabalho
-                        try {
-                            const workspaceSnapshot = await db.ref(`users/${invite.fromUserId}/workspaces/${invite.resourceId}`).get();
-                            
-                            if (workspaceSnapshot.exists()) {
-                                const workspaceData = workspaceSnapshot.val();
-                                console.log(`Workspace encontrado: ${invite.resourceId}`, workspaceData);
-                                
-                                sharedWorkspaces.push({
-                                    id: invite.resourceId,
-                                    ...workspaceData,
-                                    isOwner: false,
-                                    ownerId: invite.fromUserId,
-                                    ownerName: invite.fromUserName || 'Usuário',
-                                    role: invite.role || accessControl[invite.resourceId]
-                                });
-                            } else {
-                                console.log(`Workspace ${invite.resourceId} não encontrado para o usuário ${invite.fromUserId}`);
-                            }
-                        } catch (wsError) {
-                            console.error(`Erro ao buscar workspace ${invite.resourceId}:`, wsError);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Tentativa alternativa: busca diretamente nas permissões
-        if (sharedWorkspaces.length === 0) {
-            console.log("Tentando método alternativo de busca...");
-            const accessSnapshot = await db.ref(`accessControl/${userId}`).get();
-            
-            if (accessSnapshot.exists()) {
-                const accessPermissions = accessSnapshot.val();
-                console.log("Permissões encontradas:", accessPermissions);
-                
-                // Para cada permissão, tenta encontrar o convite correspondente
-                for (const [resourceId, role] of Object.entries(accessPermissions)) {
-                    if (resourceId === 'updatedAt') continue;
-                    
-                    // Busca o convite relacionado para obter o dono
-                    const inviteQuery = await db.ref('invitations')
-                        .orderByChild('resourceId')
-                        .equalTo(resourceId)
-                        .get();
-                    
-                    if (inviteQuery.exists()) {
-                        let foundInvite = null;
-                        inviteQuery.forEach(childSnapshot => {
-                            const invite = childSnapshot.val();
-                            if (invite.toEmail === userEmail && invite.status === 'accepted') {
-                                foundInvite = invite;
-                                return true; // Break the forEach loop
-                            }
-                        });
-                        
-                        if (foundInvite) {
-                            // Busca informações da área de trabalho
-                            try {
-                                const workspaceSnapshot = await db.ref(`users/${foundInvite.fromUserId}/workspaces/${resourceId}`).get();
-                                
-                                if (workspaceSnapshot.exists()) {
-                                    const workspaceData = workspaceSnapshot.val();
-                                    console.log(`Workspace encontrado via método alternativo: ${resourceId}`, workspaceData);
-                                    
-                                    // Verifica se já não existe na lista
-                                    const exists = sharedWorkspaces.some(ws => ws.id === resourceId);
-                                    if (!exists) {
-                                        sharedWorkspaces.push({
-                                            id: resourceId,
-                                            ...workspaceData,
-                                            isOwner: false,
-                                            ownerId: foundInvite.fromUserId,
-                                            ownerName: foundInvite.fromUserName || 'Usuário',
-                                            role: foundInvite.role || role
-                                        });
-                                    }
-                                }
-                            } catch (wsError) {
-                                console.error(`Erro ao buscar workspace ${resourceId}:`, wsError);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        console.log("Áreas de trabalho compartilhadas carregadas:", sharedWorkspaces);
-        updateSharedWorkspacesDisplay();
-        updateWorkspaceSelector(); // Atualiza também o seletor principal
-        return sharedWorkspaces;
-    } catch (error) {
-        console.error('Erro ao carregar áreas de trabalho compartilhadas:', error);
-        return [];
-    }
-}
-
-/**
  * Atualiza as listas de áreas de trabalho
  */
 export async function refreshWorkspaces() {
-    console.log("Atualizando todas as áreas de trabalho...");
     await loadUserWorkspaces();
-    await _loadSharedWorkspaces();
+    await loadSharedWorkspaces();
 }

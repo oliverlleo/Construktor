@@ -527,14 +527,9 @@ async function acceptInvite(inviteId) {
         
         // Atualiza a lista de áreas de trabalho compartilhadas
         import('../workspaces.js').then(module => {
-            console.log("Atualizando workspaces após aceitar convite...");
-            module.refreshWorkspaces();
-            
-            // Recarrega explicitamente para garantir que os dados sejam atualizados
             setTimeout(() => {
-                console.log("Recarregando workspaces compartilhados após delay...");
-                module.loadSharedWorkspaces();
-            }, 1500);
+                module.refreshWorkspaces();
+            }, 1000);
         });
         
         // Fecha o modal após alguns segundos
