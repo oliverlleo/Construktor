@@ -137,7 +137,7 @@ function setupManageInvitesModal() {
         if (cancelBtn) {
             const inviteCard = cancelBtn.closest('.invite-card');
             const inviteId = inviteCard.dataset.inviteId;
-            await cancelInvite(inviteId);
+            await manageInvite(inviteId, 'cancel');
             return;
         }
         
@@ -146,7 +146,7 @@ function setupManageInvitesModal() {
         if (acceptBtn) {
             const inviteCard = acceptBtn.closest('.invite-card');
             const inviteId = inviteCard.dataset.inviteId;
-            await acceptInvite(inviteId);
+            await manageInvite(inviteId, 'accept');
             return;
         }
         
@@ -155,7 +155,7 @@ function setupManageInvitesModal() {
         if (declineBtn) {
             const inviteCard = declineBtn.closest('.invite-card');
             const inviteId = inviteCard.dataset.inviteId;
-            await declineInvite(inviteId);
+            await manageInvite(inviteId, 'decline');
             return;
         }
         
@@ -163,14 +163,12 @@ function setupManageInvitesModal() {
         const savePermissionBtn = event.target.closest('.save-permission-btn');
         if (savePermissionBtn) {
             const accessItem = savePermissionBtn.closest('.shared-access-item');
-            const userId = accessItem.dataset.userId;
-            const email = accessItem.dataset.email;
-            const resourceId = accessItem.dataset.resourceId;
+            const inviteId = accessItem.dataset.inviteId;
             const permissionSelect = accessItem.querySelector('.permission-select');
             const newRole = permissionSelect.value;
             
-            if (userId && resourceId && newRole) {
-                await updateUserPermission(userId, resourceId, newRole, email);
+            if (inviteId && newRole) {
+                await updateUserPermission(inviteId, newRole);
                 savePermissionBtn.classList.add('hidden');
             }
             return;
@@ -180,9 +178,10 @@ function setupManageInvitesModal() {
         const removeAccessBtn = event.target.closest('.remove-access-btn');
         if (removeAccessBtn) {
             const accessItem = removeAccessBtn.closest('.shared-access-item');
+            const inviteId = accessItem.dataset.inviteId;
             const email = accessItem.dataset.email;
             
-            if (email) {
+            if (inviteId && email) {
                 const confirmRemove = await Swal.fire({
                     title: 'Remover acesso',
                     text: `Tem certeza que deseja remover o acesso de ${email}?`,
@@ -195,7 +194,7 @@ function setupManageInvitesModal() {
                 });
                 
                 if (confirmRemove.isConfirmed) {
-                    await removeUserAccess(email);
+                    await manageInvite(inviteId, 'revoke');
                 }
             }
             return;
@@ -246,7 +245,7 @@ function updateInvitesTabUI() {
 }
 
 /**
- * Envia um convite para outro usuário
+ * Envia um convite para outro usuário através de uma Cloud Function.
  */
 async function sendInvite() {
     const emailInput = document.getElementById('invite-email-input');
@@ -255,74 +254,110 @@ async function sendInvite() {
     const email = emailInput.value.trim().toLowerCase();
     const permission = permissionSelect.value;
     
-    if (!email) {
-        showError('Erro', 'Por favor, informe o email do usuário.');
+    // Validações de e-mail
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email === getUsuarioEmail()?.toLowerCase()) {
+        showError('Erro', 'Por favor, insira um e-mail válido e diferente do seu.');
         return;
     }
-    
-    // Verifica se é um email válido
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showError('Erro', 'Por favor, informe um email válido.');
+
+    const currentWorkspace = window.getCurrentWorkspace ? window.getCurrentWorkspace() : null;
+    if (!currentWorkspace) {
+        showError('Erro', 'Nenhuma área de trabalho selecionada para compartilhar.');
         return;
     }
-    
-    // Não permite convidar a si mesmo
-    if (email === getUsuarioEmail()?.toLowerCase()) {
-        showError('Erro', 'Você não pode convidar a si mesmo.');
-        return;
-    }
-    
+
     showLoading('Enviando convite...');
-    
+
     try {
-        const currentUser = getUsuarioAtual();
-        const userId = getUsuarioId();
-        
-        if (!currentUser || !userId) {
-            throw new Error('Usuário não autenticado.');
+        // Verifica se o Firebase Functions está disponível
+        if (!firebase.functions) {
+            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
         }
         
-        // Busca o perfil do usuário atual
-        const userProfile = await getUserProfileData() || {};
-        const senderName = userProfile.displayName || getUsuarioNome() || getUsuarioEmail() || 'Usuário';
-        
-        // Obtém a área de trabalho atual para compartilhar
-        const currentWorkspace = window.getCurrentWorkspace ? window.getCurrentWorkspace() : null;
-        if (!currentWorkspace) {
-            hideLoading();
-            showError('Erro', 'Nenhuma área de trabalho selecionada para compartilhar.');
-            return;
-        }
-        
-        // Cria um novo convite
-        const inviteRef = db.ref('invitations').push();
-        
-        await inviteRef.set({
-            fromUserId: userId,
-            fromUserName: senderName,
+        const functions = firebase.functions();
+        const sendWorkspaceInvitation = functions.httpsCallable('sendWorkspaceInvitation');
+        await sendWorkspaceInvitation({
             toEmail: email,
-            resourceType: 'workspace',          // Tipo de recurso compartilhado
-            resourceId: currentWorkspace.id,    // ID da área de trabalho
-            resourceName: currentWorkspace.name, // Nome da área de trabalho
-            role: permission,                   // Permissão concedida
-            status: 'pending',                  // Status inicial: pendente
-            createdAt: firebase.database.ServerValue.TIMESTAMP
+            resourceId: currentWorkspace.id,
+            resourceName: currentWorkspace.name,
+            role: permission
         });
         
-        // Fecha o modal
-        const inviteModal = document.getElementById('invite-modal');
-        inviteModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            inviteModal.classList.add('hidden');
-        }, 300);
-        
+        // Esconde o modal e mostra sucesso
+        document.getElementById('invite-modal').classList.add('hidden');
         hideLoading();
         showSuccess('Convite enviado', `Um convite foi enviado para ${email}.`);
+        loadInvites('sent'); // Recarrega a lista de convites enviados
+
     } catch (error) {
-        console.error('Erro ao enviar convite:', error);
+        console.error('Erro ao chamar a função sendWorkspaceInvitation:', error);
         hideLoading();
-        showError('Erro', 'Ocorreu um erro ao enviar o convite.');
+        showError('Erro no Envio', error.message || 'Erro desconhecido ao enviar convite');
+    }
+}
+
+/**
+ * Gere uma ação num convite (aceitar, recusar, cancelar, revogar).
+ * @param {string} inviteId - ID do convite
+ * @param {string} action - Ação a ser executada
+ */
+async function manageInvite(inviteId, action) {
+    showLoading('A processar...');
+    try {
+        // Verifica se o Firebase Functions está disponível
+        if (!firebase.functions) {
+            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
+        }
+        
+        const functions = firebase.functions();
+        const manageInvitation = functions.httpsCallable('manageInvitation');
+        await manageInvitation({ inviteId, action });
+
+        hideLoading();
+        showSuccess('Sucesso!', `O convite foi ${action === 'accept' ? 'aceite' : (action === 'decline' ? 'recusado' : (action === 'cancel' ? 'cancelado' : 'revogado'))}.`);
+
+        // Recarrega a lista apropriada
+        if (action === 'accept' || action === 'decline') {
+            loadInvites('received');
+            checkPendingInvitations();
+        } else if (action === 'cancel') {
+            loadInvites('sent');
+        } else if (action === 'revoke') {
+            loadSharedAccess();
+        }
+
+    } catch (error) {
+        console.error(`Erro ao executar a ação '${action}':`, error);
+        hideLoading();
+        showError('Erro', error.message || 'Erro desconhecido ao processar convite');
+    }
+}
+
+/**
+ * Atualiza a permissão de um utilizador através de uma Cloud Function.
+ * @param {string} inviteId - O ID do convite original aceite
+ * @param {string} newRole - A nova permissão
+ */
+async function updateUserPermission(inviteId, newRole) {
+    showLoading('A atualizar permissão...');
+    try {
+        // Verifica se o Firebase Functions está disponível
+        if (!firebase.functions) {
+            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
+        }
+        
+        const functions = firebase.functions();
+        const updateUserPermissionFn = functions.httpsCallable('updateUserPermission');
+        await updateUserPermissionFn({ inviteId, newRole });
+        
+        hideLoading();
+        showSuccess('Permissão atualizada', 'A permissão do utilizador foi alterada com sucesso.');
+        loadSharedAccess(); // Recarrega a lista de acessos
+        
+    } catch (error) {
+        console.error('Erro ao atualizar permissão:', error);
+        hideLoading();
+        showError('Erro na Atualização', error.message || 'Erro desconhecido ao atualizar permissão');
     }
 }
 
@@ -492,187 +527,6 @@ function renderReceivedInvite(invite, container) {
 }
 
 /**
- * Cancela um convite enviado
- * @param {string} inviteId - ID do convite
- */
-async function cancelInvite(inviteId) {
-    const userId = getUsuarioId();
-    
-    if (!userId) {
-        showError('Erro', 'Usuário não autenticado.');
-        return;
-    }
-    
-    try {
-        showLoading('Cancelando convite...');
-        
-        // Verifica se o convite existe e pertence ao usuário atual
-        const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
-        const invite = inviteSnapshot.val();
-        
-        if (!invite || invite.fromUserId !== userId) {
-            hideLoading();
-            showError('Erro', 'Convite não encontrado ou não autorizado.');
-            return;
-        }
-        
-        // Atualiza o status do convite para 'canceled'
-        await db.ref(`invitations/${inviteId}`).update({
-            status: 'canceled',
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Atualiza a UI
-        const inviteCard = document.querySelector(`.invite-card[data-invite-id="${inviteId}"]`);
-        if (inviteCard) {
-            const statusBadge = inviteCard.querySelector('.invite-status-badge');
-            const { badgeClass, statusText } = getStatusBadgeInfo('canceled');
-            statusBadge.className = `inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`;
-            statusBadge.textContent = statusText;
-            
-            // Esconde o container do botão de cancelar
-            const cancelContainer = inviteCard.querySelector('.cancel-invite-container');
-            if (cancelContainer) {
-                cancelContainer.style.display = 'none';
-            }
-        }
-        
-        hideLoading();
-        showSuccess('Convite cancelado', 'O convite foi cancelado com sucesso.');
-    } catch (error) {
-        hideLoading();
-        console.error('Erro ao cancelar convite:', error);
-        showError('Erro', 'Ocorreu um erro ao cancelar o convite.');
-    }
-}
-
-/**
- * Aceita um convite recebido
- * @param {string} inviteId - ID do convite
- */
-async function acceptInvite(inviteId) {
-    const userId = getUsuarioId();
-    const userEmail = getUsuarioEmail()?.toLowerCase();
-    
-    if (!userId || !userEmail) {
-        showError('Erro', 'Usuário não autenticado.');
-        return;
-    }
-    
-    try {
-        // Verifica se o convite existe e é para o usuário atual
-        const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
-        const invite = inviteSnapshot.val();
-        
-        if (!invite || invite.toEmail !== userEmail || invite.status !== 'pending') {
-            showError('Erro', 'Convite não encontrado ou não autorizado.');
-            return;
-        }
-        
-        // Atualiza o status do convite para 'accepted'
-        await db.ref(`invitations/${inviteId}`).update({
-            status: 'accepted',
-            acceptedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Adiciona uma entrada na tabela de controle de acesso
-        await db.ref(`accessControl/${userId}`).update({
-            [invite.resourceId]: invite.role,
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Remove o convite da lista
-        const inviteCard = document.querySelector(`.invite-card[data-invite-id="${inviteId}"]`);
-        if (inviteCard) {
-            inviteCard.remove();
-            
-            // Verifica se ainda existem convites
-            const receivedList = document.getElementById('received-invites-list');
-            if (receivedList.children.length === 0) {
-                document.getElementById('no-received-invites').classList.remove('hidden');
-                receivedList.classList.add('hidden');
-            }
-        }
-        
-        showSuccess('Convite aceito', 'Agora você tem acesso ao recurso compartilhado.');
-        
-        // Atualiza a lista de áreas de trabalho compartilhadas
-        import('../workspaces.js').then(module => {
-            console.log("Atualizando workspaces após aceitar convite...");
-            module.refreshWorkspaces();
-            
-            // Recarrega explicitamente para garantir que os dados sejam atualizados
-            setTimeout(() => {
-                console.log("Recarregando workspaces compartilhados após delay...");
-                module.loadSharedWorkspaces();
-            }, 1500);
-        });
-        
-        // Fecha o modal após alguns segundos
-        setTimeout(() => {
-            const manageInvitesModal = document.getElementById('manage-invites-modal');
-            if (manageInvitesModal && !manageInvitesModal.classList.contains('hidden')) {
-                manageInvitesModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    manageInvitesModal.classList.add('hidden');
-                }, 300);
-            }
-        }, 2000);
-    } catch (error) {
-        console.error('Erro ao aceitar convite:', error);
-        showError('Erro', 'Ocorreu um erro ao aceitar o convite.');
-    }
-}
-
-/**
- * Recusa um convite recebido
- * @param {string} inviteId - ID do convite
- */
-async function declineInvite(inviteId) {
-    const userEmail = getUsuarioEmail()?.toLowerCase();
-    
-    if (!userEmail) {
-        showError('Erro', 'Usuário não autenticado.');
-        return;
-    }
-    
-    try {
-        // Verifica se o convite existe e é para o usuário atual
-        const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
-        const invite = inviteSnapshot.val();
-        
-        if (!invite || invite.toEmail !== userEmail || invite.status !== 'pending') {
-            showError('Erro', 'Convite não encontrado ou não autorizado.');
-            return;
-        }
-        
-        // Atualiza o status do convite para 'declined'
-        await db.ref(`invitations/${inviteId}`).update({
-            status: 'declined',
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Remove o convite da lista
-        const inviteCard = document.querySelector(`.invite-card[data-invite-id="${inviteId}"]`);
-        if (inviteCard) {
-            inviteCard.remove();
-            
-            // Verifica se ainda existem convites
-            const receivedList = document.getElementById('received-invites-list');
-            if (receivedList.children.length === 0) {
-                document.getElementById('no-received-invites').classList.remove('hidden');
-                receivedList.classList.add('hidden');
-            }
-        }
-        
-        showSuccess('Convite recusado', 'O convite foi recusado com sucesso.');
-    } catch (error) {
-        console.error('Erro ao recusar convite:', error);
-        showError('Erro', 'Ocorreu um erro ao recusar o convite.');
-    }
-}
-
-/**
  * Verifica se há convites pendentes para o usuário atual
  * @returns {Promise<number>} Número de convites pendentes
  */
@@ -736,61 +590,6 @@ function updateReceivedInvitesBadge(count) {
     }
 }
 
-// Funções auxiliares
-
-/**
- * Retorna informações de estilo e texto para o badge de status
- * @param {string} status - Status do convite
- * @returns {Object} Objeto com classe CSS e texto do status
- */
-function getStatusBadgeInfo(status) {
-    switch (status) {
-        case 'pending':
-            return { 
-                badgeClass: 'bg-yellow-100 text-yellow-800', 
-                statusText: 'Pendente' 
-            };
-        case 'accepted':
-            return { 
-                badgeClass: 'bg-green-100 text-green-800', 
-                statusText: 'Aceito' 
-            };
-        case 'declined':
-            return { 
-                badgeClass: 'bg-red-100 text-red-800', 
-                statusText: 'Recusado' 
-            };
-        case 'canceled':
-            return { 
-                badgeClass: 'bg-slate-100 text-slate-800', 
-                statusText: 'Cancelado' 
-            };
-        default:
-            return { 
-                badgeClass: 'bg-slate-100 text-slate-800', 
-                statusText: 'Desconhecido' 
-            };
-    }
-}
-
-/**
- * Formata a permissão para exibição
- * @param {string} role - Papel/permissão do usuário
- * @returns {string} Permissão formatada
- */
-function formatPermission(role) {
-    switch (role) {
-        case 'admin':
-            return 'Administrador';
-        case 'editor':
-            return 'Editor';
-        case 'viewer':
-            return 'Leitor';
-        default:
-            return role || 'Desconhecido';
-    }
-}
-
 /**
  * Carrega e exibe os acessos compartilhados
  */
@@ -813,43 +612,22 @@ async function loadSharedAccess() {
         const snapshot = await query.once('value');
         const sharedAccess = [];
         
-        // Processa cada convite aceito
-        for (const childSnapshot of Object.values(snapshot.val() || {})) {
-            const invite = childSnapshot;
+        snapshot.forEach(childSnapshot => {
+            const invite = childSnapshot.val();
+            const inviteId = childSnapshot.key;
             
             // Considera apenas convites aceitos
             if (invite.status === 'accepted' && invite.toEmail) {
-                // Busca o userId do usuário através do email no Firebase Auth
-                let toUserId = null;
-                
-                try {
-                    // Busca por usuários que aceitaram o convite usando o controle de acesso
-                    const accessControlSnapshot = await db.ref('accessControl').once('value');
-                    const accessControlData = accessControlSnapshot.val() || {};
-                    
-                    // Procura o usuário que tem acesso ao recurso
-                    for (const [userId, userAccess] of Object.entries(accessControlData)) {
-                        if (userAccess && userAccess[invite.resourceId]) {
-                            toUserId = userId;
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Erro ao buscar userId:', error);
-                }
-                
                 sharedAccess.push({
-                    id: Object.keys(snapshot.val()).find(key => snapshot.val()[key] === invite),
-                    userId: toUserId,
+                    id: inviteId,
                     email: invite.toEmail,
                     resourceId: invite.resourceId,
                     resourceType: invite.resourceType,
                     role: invite.role,
-                    acceptedAt: invite.acceptedAt,
-                    inviteData: invite
+                    acceptedAt: invite.acceptedAt
                 });
             }
-        }
+        });
         
         // Renderiza os usuários com acesso
         renderSharedAccess(sharedAccess);
@@ -903,7 +681,7 @@ function renderSharedAccessItem(access, container) {
     const clone = document.importNode(template.content, true);
     
     const accessItem = clone.querySelector('.shared-access-item');
-    accessItem.dataset.userId = access.userId || '';
+    accessItem.dataset.inviteId = access.id || '';
     accessItem.dataset.email = access.email || '';
     accessItem.dataset.resourceId = access.resourceId || '';
     accessItem.dataset.role = access.role || '';
@@ -920,198 +698,66 @@ function renderSharedAccessItem(access, container) {
         saveBtn.classList.remove('hidden');
     });
     
-    // Adiciona evento para o botão de salvar
-    const saveBtn = accessItem.querySelector('.save-permission-btn');
-    saveBtn.addEventListener('click', function() {
-        updateUserPermission(access.userId || '', access.resourceId || '', permissionSelect.value, access.email || '');
-    });
-    
     container.appendChild(clone);
 }
 
+// Funções auxiliares
+
 /**
- * Atualiza a permissão de um usuário
- * @param {string} userId - ID do usuário
- * @param {string} resourceId - ID do recurso
- * @param {string} newRole - Nova permissão
- * @param {string} email - Email do usuário
+ * Retorna informações de estilo e texto para o badge de status
+ * @param {string} status - Status do convite
+ * @returns {Object} Objeto com classe CSS e texto do status
  */
-async function updateUserPermission(userId, resourceId, newRole, email) {
-    if (!resourceId || !newRole || !email) {
-        showError('Erro', 'Dados inválidos para atualizar permissão.');
-        return;
-    }
-    
-    showLoading('Atualizando permissão...');
-    
-    try {
-        const currentUserId = getUsuarioId();
-        
-        // Busca o convite aceito correspondente
-        const invitesQuery = db.ref('invitations')
-            .orderByChild('fromUserId')
-            .equalTo(currentUserId);
-        
-        const snapshot = await invitesQuery.once('value');
-        const updates = {};
-        let found = false;
-        let targetUserId = userId;
-        
-        snapshot.forEach(childSnapshot => {
-            const invite = childSnapshot.val();
-            if (invite.status === 'accepted' && 
-                invite.toEmail === email && 
-                invite.resourceId === resourceId) {
-                
-                // Atualiza a permissão no convite
-                updates[`invitations/${childSnapshot.key}/role`] = newRole;
-                updates[`invitations/${childSnapshot.key}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
-                
-                found = true;
-            }
-        });
-        
-        if (!found) {
-            hideLoading();
-            showError('Erro', 'Convite não encontrado para atualizar.');
-            return;
-        }
-        
-        // Se não temos o userId, busca através do controle de acesso
-        if (!targetUserId) {
-            const accessControlSnapshot = await db.ref('accessControl').once('value');
-            const accessControlData = accessControlSnapshot.val() || {};
-            
-            for (const [uId, userAccess] of Object.entries(accessControlData)) {
-                if (userAccess && userAccess[resourceId]) {
-                    targetUserId = uId;
-                    break;
-                }
-            }
-        }
-        
-        // Atualiza a permissão no controle de acesso se encontrou o userId
-        if (targetUserId) {
-            updates[`accessControl/${targetUserId}/${resourceId}`] = newRole;
-        }
-        
-        // Aplica todas as atualizações
-        await db.ref().update(updates);
-        
-        // Atualiza o dataset do item na UI
-        const accessItem = document.querySelector(`.shared-access-item[data-email="${email}"]`);
-        if (accessItem) {
-            accessItem.dataset.role = newRole;
-            if (targetUserId) {
-                accessItem.dataset.userId = targetUserId;
-            }
-        }
-        
-        hideLoading();
-        showSuccess('Permissão atualizada', `A permissão de ${email} foi alterada para ${formatPermission(newRole)}.`);
-    } catch (error) {
-        hideLoading();
-        console.error('Erro ao atualizar permissão:', error);
-        showError('Erro', 'Ocorreu um erro ao atualizar a permissão.');
+function getStatusBadgeInfo(status) {
+    switch (status) {
+        case 'pending':
+            return { 
+                badgeClass: 'bg-yellow-100 text-yellow-800', 
+                statusText: 'Pendente' 
+            };
+        case 'accepted':
+            return { 
+                badgeClass: 'bg-green-100 text-green-800', 
+                statusText: 'Aceito' 
+            };
+        case 'declined':
+            return { 
+                badgeClass: 'bg-red-100 text-red-800', 
+                statusText: 'Recusado' 
+            };
+        case 'canceled':
+            return { 
+                badgeClass: 'bg-slate-100 text-slate-800', 
+                statusText: 'Cancelado' 
+            };
+        case 'revoked':
+            return { 
+                badgeClass: 'bg-slate-100 text-slate-800', 
+                statusText: 'Revogado' 
+            };
+        default:
+            return { 
+                badgeClass: 'bg-slate-100 text-slate-800', 
+                statusText: 'Desconhecido' 
+            };
     }
 }
 
 /**
- * Remove o acesso de um usuário
- * @param {string} email - Email do usuário a ter o acesso removido
+ * Formata a permissão para exibição
+ * @param {string} role - Papel/permissão do usuário
+ * @returns {string} Permissão formatada
  */
-async function removeUserAccess(email) {
-    if (!email) {
-        showError('Erro', 'Email de usuário inválido.');
-        return;
-    }
-    
-    showLoading('Removendo acesso...');
-    
-    try {
-        const currentUserId = getUsuarioId();
-        
-        // Busca todos os convites aceitos para este usuário
-        const invitesQuery = db.ref('invitations')
-            .orderByChild('fromUserId')
-            .equalTo(currentUserId);
-        
-        const snapshot = await invitesQuery.once('value');
-        const updates = {};
-        let found = false;
-        let targetUserId = null;
-        
-        snapshot.forEach(childSnapshot => {
-            const invite = childSnapshot.val();
-            if (invite.status === 'accepted' && invite.toEmail === email) {
-                // Marca o convite como revogado
-                updates[`invitations/${childSnapshot.key}/status`] = 'revoked';
-                updates[`invitations/${childSnapshot.key}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
-                
-                found = true;
-            }
-        });
-        
-        if (!found) {
-            hideLoading();
-            showError('Erro', 'Nenhum acesso encontrado para este usuário.');
-            return;
-        }
-        
-        // Busca o userId através do controle de acesso para remover a permissão
-        const accessControlSnapshot = await db.ref('accessControl').once('value');
-        const accessControlData = accessControlSnapshot.val() || {};
-        
-        // Encontra o userId e remove todos os acessos relacionados
-        for (const [uId, userAccess] of Object.entries(accessControlData)) {
-            if (userAccess) {
-                // Verifica se precisa remover acessos deste usuário buscando o email nos convites
-                const userInvitesQuery = db.ref('invitations')
-                    .orderByChild('fromUserId')
-                    .equalTo(currentUserId);
-                
-                const userInvitesSnapshot = await userInvitesQuery.once('value');
-                let shouldRemove = false;
-                
-                userInvitesSnapshot.forEach(childSnapshot => {
-                    const invite = childSnapshot.val();
-                    if (invite.toEmail === email && invite.status === 'accepted') {
-                        // Remove acesso a este recurso específico
-                        if (invite.resourceId && userAccess[invite.resourceId]) {
-                            updates[`accessControl/${uId}/${invite.resourceId}`] = null;
-                            shouldRemove = true;
-                        }
-                    }
-                });
-                
-                if (shouldRemove) {
-                    targetUserId = uId;
-                }
-            }
-        }
-        
-        // Aplica todas as atualizações em uma única transação
-        await db.ref().update(updates);
-        
-        // Remove o item da UI
-        const accessItem = document.querySelector(`.shared-access-item[data-email="${email}"]`);
-        if (accessItem) {
-            accessItem.remove();
-            
-            // Verifica se ainda existem itens
-            const accessList = document.getElementById('shared-access-list');
-            if (accessList.children.length === 0) {
-                document.getElementById('no-shared-access').classList.remove('hidden');
-                accessList.classList.add('hidden');
-            }
-        }
-        
-        hideLoading();
-        showSuccess('Acesso removido', 'O acesso do usuário foi removido com sucesso.');
-    } catch (error) {
-        hideLoading();
-        console.error('Erro ao remover acesso:', error);
-        showError('Erro', 'Ocorreu um erro ao remover o acesso do usuário.');
+function formatPermission(role) {
+    switch (role) {
+        case 'admin':
+            return 'Administrador';
+        case 'editor':
+            return 'Editor';
+        case 'viewer':
+            return 'Leitor';
+        default:
+            return role || 'Desconhecido';
     }
 }
 

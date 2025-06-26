@@ -1,0 +1,35 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "accessControl": {
+      "$uid": {
+        // Um utilizador só pode ler e escrever as SUAS PRÓPRIAS permissões.
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    // NOVO: Um local partilhado para a informação dos workspaces
+    "sharedWorkspaces": {
+      "$workspaceId": {
+        // Um utilizador pode ler a informação de um workspace partilhado
+        // se ele tiver uma entrada para esse workspace no seu próprio accessControl.
+        ".read": "root.child('accessControl').child(auth.uid).child($workspaceId).exists()"
+      }
+      // A escrita aqui deve ser feita por Cloud Functions para máxima segurança.
+    },
+    "invitations": {
+      // Permite as consultas seguras que o seu código precisa para ver convites enviados/recebidos.
+      ".read": "auth != null && ((query.orderByChild === 'fromUserId' && query.equalTo === auth.uid) || (query.orderByChild === 'toEmail' && query.equalTo === auth.token.email))",
+      ".indexOn": ["fromUserId", "toEmail", "resourceId"],
+      "$inviteId": {
+        // A escrita/atualização de convites deve ser feita por Cloud Functions.
+        ".write": false
+      }
+    }
+  }
+}
