@@ -7,6 +7,7 @@ const fileStructure = {
     'js/database.js': { path: '../js/database.js', type: 'javascript' },
     'js/ui.js': { path: '../js/ui.js', type: 'javascript' },
     'js/main.js': { path: '../js/main.js', type: 'javascript' },
+    'js/workspaces.js': { path: '../js/workspaces.js', type: 'javascript' },
     'js/login.js': { path: '../js/login.js', type: 'javascript' },
     'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
     'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },

@@ -1,4 +1,4 @@
-import { getUsuarioId } from './autenticacao.js';
+import { getUsuarioId, getUsuarioEmail } from './autenticacao.js';
 import { showError, showLoading, hideLoading } from './ui.js';
 import { TIPS_STATE } from './config.js';
 
@@ -7,6 +7,7 @@ let db;
 let allEntities = [];
 let modulesOrder = []; // Armazena a ordem dos módulos
 let userPreferences = {}; // Armazena preferências do usuário
+let sharedResources = []; // Armazena recursos compartilhados com o usuário
 
 /**
  * Inicializa o módulo de banco de dados
@@ -19,6 +20,9 @@ export async function initDatabase(firebase) {
         
         // Carrega preferências do usuário
         await loadUserPreferences();
+        
+        // Carrega recursos compartilhados com o usuário
+        await loadSharedResources();
     } catch (error) {
         console.error("Erro ao inicializar banco de dados:", error);
         showError('Erro de Conexão', 'Não foi possível conectar ao banco de dados.');
@@ -27,18 +31,20 @@ export async function initDatabase(firebase) {
 }
 
 /**
- * Carrega todas as entidades do banco de dados
+ * Carrega todas as entidades do banco de dados para a área de trabalho atual
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional, para workspaces compartilhados)
  * @returns {Promise<Array>} - Array com todas as entidades
  */
-export async function loadAllEntities() {
+export async function loadAllEntities(workspaceId = 'default', ownerId = null) {
     try {
-        const userId = getUsuarioId();
+        const userId = ownerId || getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        console.log(`Buscando entidades para o usuário: ${userId}`);
-        const snapshot = await db.ref(`users/${userId}/entities`).get();
+        console.log(`Buscando entidades para a área de trabalho: ${workspaceId} do usuário: ${userId}`);
+        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/entities`).get();
         allEntities = [];
         
         if (snapshot.exists()) {
@@ -70,18 +76,20 @@ export function getEntities() {
 }
 
 /**
- * Carrega e renderiza todos os módulos
+ * Carrega e renderiza todos os módulos para a área de trabalho atual
  * @param {Function} renderCallback - Função para renderizar cada módulo
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional, para workspaces compartilhados)
  * @returns {Promise<Array>} - Array com todos os módulos
  */
-export async function loadAndRenderModules(renderCallback) {
+export async function loadAndRenderModules(renderCallback, workspaceId = 'default', ownerId = null) {
     try {
-        const userId = getUsuarioId();
+        const userId = ownerId || getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        const snapshot = await db.ref(`users/${userId}/modules`).get();
+        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/modules`).get();
         if (!snapshot.exists()) {
             return [];
         }
@@ -89,7 +97,7 @@ export async function loadAndRenderModules(renderCallback) {
         const modules = snapshot.val();
         
         // Verifica se há uma ordem personalizada salva
-        const orderSnapshot = await db.ref(`users/${userId}/modules_order`).get();
+        const orderSnapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/modules_order`).get();
         if (orderSnapshot.exists()) {
             modulesOrder = orderSnapshot.val();
             
@@ -127,16 +135,18 @@ export async function loadAndRenderModules(renderCallback) {
 /**
  * Carrega as entidades adicionadas em cada módulo
  * @param {Function} renderCallback - Função para renderizar cada entidade em seu módulo
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional, para workspaces compartilhados)
  * @returns {Promise<Object>} - Objeto com os schemas carregados
  */
-export async function loadDroppedEntitiesIntoModules(renderCallback) {
+export async function loadDroppedEntitiesIntoModules(renderCallback, workspaceId = 'default', ownerId = null) {
     try {
-        const userId = getUsuarioId();
+        const userId = ownerId || getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        const snapshot = await db.ref(`users/${userId}/schemas`).get();
+        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas`).get();
         if (!snapshot.exists()) {
             return {};
         }
@@ -168,16 +178,18 @@ export async function loadDroppedEntitiesIntoModules(renderCallback) {
  * Carrega a estrutura de uma entidade específica
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional, para workspaces compartilhados)
  * @returns {Promise<Object>} - Estrutura da entidade
  */
-export async function loadStructureForEntity(moduleId, entityId) {
+export async function loadStructureForEntity(moduleId, entityId, workspaceId = 'default', ownerId = null) {
     try {
-        const userId = getUsuarioId();
+        const userId = ownerId || getUsuarioId();
         if (!userId) {
             throw new Error('Usuário não autenticado');
         }
         
-        const snapshot = await db.ref(`users/${userId}/schemas/${moduleId}/${entityId}`).get();
+        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).get();
         if (!snapshot.exists()) {
             return { attributes: [] };
         }
@@ -191,11 +203,12 @@ export async function loadStructureForEntity(moduleId, entityId) {
 }
 
 /**
- * Cria uma nova entidade
+ * Cria uma nova entidade na área de trabalho atual
  * @param {Object} entityData - Dados da nova entidade
+ * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<string>} - ID da entidade criada
  */
-export async function createEntity(entityData) {
+export async function createEntity(entityData, workspaceId = 'default') {
     try {
         showLoading('Criando entidade...');
         
@@ -204,7 +217,7 @@ export async function createEntity(entityData) {
             throw new Error('Usuário não autenticado');
         }
         
-        const newEntityRef = db.ref(`users/${userId}/entities`).push();
+        const newEntityRef = db.ref(`users/${userId}/workspaces/${workspaceId}/entities`).push();
         await newEntityRef.set(entityData);
         
         // Atualiza a lista local
@@ -221,11 +234,12 @@ export async function createEntity(entityData) {
 }
 
 /**
- * Cria um novo módulo
+ * Cria um novo módulo na área de trabalho atual
  * @param {string} name - Nome do módulo
+ * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<string>} - ID do módulo criado
  */
-export async function createModule(name) {
+export async function createModule(name, workspaceId = 'default') {
     try {
         showLoading('Criando módulo...');
         
@@ -234,13 +248,13 @@ export async function createModule(name) {
             throw new Error('Usuário não autenticado');
         }
         
-        const newModuleRef = db.ref(`users/${userId}/modules`).push();
+        const newModuleRef = db.ref(`users/${userId}/workspaces/${workspaceId}/modules`).push();
         const newModuleData = { id: newModuleRef.key, name };
         await newModuleRef.set(newModuleData);
         
         // Adiciona à ordem de módulos
         modulesOrder.push(newModuleRef.key);
-        await db.ref(`users/${userId}/modules_order`).set(modulesOrder);
+        await db.ref(`users/${userId}/workspaces/${workspaceId}/modules_order`).set(modulesOrder);
         
         hideLoading();
         return newModuleRef.key;
@@ -673,5 +687,143 @@ export async function deleteEntityRecord(moduleId, entityId, recordId) {
         console.error("Erro ao excluir registro:", error);
         showError('Erro ao Excluir', 'Não foi possível excluir o registro.');
         throw error;
+    }
+}
+
+/**
+ * Carrega os recursos compartilhados com o usuário atual
+ * @returns {Promise<Array>} - Lista de recursos compartilhados
+ */
+export async function loadSharedResources() {
+    try {
+        const userId = getUsuarioId();
+        if (!userId) {
+            throw new Error('Usuário não autenticado');
+        }
+        
+        console.log("Carregando recursos compartilhados para o usuário:", userId);
+        
+        // Verifica permissões do usuário
+        const accessControlSnapshot = await db.ref(`accessControl/${userId}`).get();
+        if (!accessControlSnapshot.exists()) {
+            console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
+            sharedResources = [];
+            return [];
+        }
+        
+        const accessControl = accessControlSnapshot.val();
+        console.log("Permissões encontradas:", accessControl);
+        
+        // Lista para armazenar os recursos compartilhados
+        sharedResources = [];
+        
+        // Para cada recurso ao qual o usuário tem acesso
+        for (const resourceId in accessControl) {
+            if (resourceId === 'updatedAt') continue; // Ignore o timestamp
+            
+            const role = accessControl[resourceId];
+            
+            // Busca informações sobre o recurso
+            // Primeiro, vamos verificar de qual usuário é o recurso
+            const invitationsSnapshot = await db.ref('invitations')
+                .orderByChild('resourceId')
+                .equalTo(resourceId)
+                .get();
+            
+            if (!invitationsSnapshot.exists()) continue;
+            
+            // Encontra o convite aceito que contém este recurso
+            let ownerId = null;
+            let resourceName = "";
+            let resourceType = "";
+            
+            invitationsSnapshot.forEach(childSnapshot => {
+                const invite = childSnapshot.val();
+                if (invite.status === 'accepted' && invite.toEmail.toLowerCase() === getUsuarioEmail().toLowerCase()) {
+                    ownerId = invite.fromUserId;
+                    resourceName = invite.fromUserName;
+                    resourceType = invite.resourceType;
+                }
+            });
+            
+            if (!ownerId) continue;
+            
+            // Adiciona o recurso à lista
+            sharedResources.push({
+                id: resourceId,
+                ownerId: ownerId,
+                ownerName: resourceName,
+                type: resourceType,
+                role: role
+            });
+        }
+        
+        console.log("Recursos compartilhados carregados:", sharedResources);
+        return sharedResources;
+    } catch (error) {
+        console.error("Erro ao carregar recursos compartilhados:", error);
+        return [];
+    }
+}
+
+/**
+ * Obtém os recursos compartilhados carregados
+ * @returns {Array} - Lista de recursos compartilhados
+ */
+export function getSharedResources() {
+    return sharedResources;
+}
+
+/**
+ * Verifica se o usuário tem acesso a um recurso específico
+ * @param {string} resourceId - ID do recurso
+ * @returns {Promise<string|null>} - Tipo de acesso ou null se não tiver acesso
+ */
+export async function checkResourceAccess(resourceId) {
+    try {
+        const userId = getUsuarioId();
+        if (!userId) return null;
+        
+        const snapshot = await db.ref(`accessControl/${userId}/${resourceId}`).get();
+        return snapshot.exists() ? snapshot.val() : null;
+    } catch (error) {
+        console.error("Erro ao verificar acesso ao recurso:", error);
+        return null;
+    }
+}
+
+/**
+ * Carrega módulos compartilhados de outro usuário
+ * @param {string} ownerId - ID do usuário dono dos recursos
+ * @returns {Promise<Array>} - Lista de módulos compartilhados
+ */
+export async function loadSharedUserModules(ownerId) {
+    try {
+        if (!ownerId) {
+            throw new Error('ID do usuário dono não fornecido');
+        }
+        
+        const snapshot = await db.ref(`users/${ownerId}/modules`).get();
+        if (!snapshot.exists()) {
+            return [];
+        }
+        
+        const modules = snapshot.val();
+        const modulesList = [];
+        
+        for (const moduleId in modules) {
+            modulesList.push({
+                id: moduleId,
+                ...modules[moduleId],
+                isShared: true,
+                ownerId: ownerId
+            });
+        }
+        
+        return modulesList;
+    } catch (error) {
+        console.error("Erro ao carregar módulos compartilhados:", error);
+        showError('Erro de Dados', 'Não foi possível carregar os módulos compartilhados.');
+        return [];
     }
 }

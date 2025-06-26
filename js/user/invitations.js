@@ -71,12 +71,21 @@ function setupManageInvitesModal() {
     const tabInvitesReceived = document.getElementById('tab-invites-received');
     
     // Abrir o modal
-    manageInvitesButton.addEventListener('click', () => {
+    manageInvitesButton.addEventListener('click', async () => {
         document.getElementById('user-menu-dropdown').classList.add('hidden');
         manageInvitesModal.classList.remove('hidden');
         setTimeout(() => {
             manageInvitesModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
         }, 10);
+        
+        // Verifica se há convites pendentes
+        const pendingCount = await checkPendingInvitations();
+        
+        // Se houver convites pendentes e a aba ativa não for "recebidos", muda para essa aba
+        if (pendingCount > 0 && activeTab !== 'received') {
+            activeTab = 'received';
+            updateInvitesTabUI();
+        }
         
         // Carrega os convites
         loadInvites(activeTab);
@@ -166,6 +175,11 @@ function updateInvitesTabUI() {
         receivedContainer.classList.remove('hidden');
         sentContainer.classList.add('hidden');
     }
+    
+    // Atualiza os ícones para garantir que eles sejam renderizados corretamente
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 }
 
 /**
@@ -210,6 +224,14 @@ async function sendInvite() {
         const userProfile = await getUserProfileData() || {};
         const senderName = userProfile.displayName || getUsuarioNome() || getUsuarioEmail() || 'Usuário';
         
+        // Obtém a área de trabalho atual para compartilhar
+        const currentWorkspace = window.getCurrentWorkspace ? window.getCurrentWorkspace() : null;
+        if (!currentWorkspace) {
+            hideLoading();
+            showError('Erro', 'Nenhuma área de trabalho selecionada para compartilhar.');
+            return;
+        }
+        
         // Cria um novo convite
         const inviteRef = db.ref('invitations').push();
         
@@ -217,8 +239,9 @@ async function sendInvite() {
             fromUserId: userId,
             fromUserName: senderName,
             toEmail: email,
-            resourceType: 'module_constructor', // Tipo de recurso compartilhado
-            resourceId: 'main_constructor',     // ID do recurso (neste caso, o construtor principal)
+            resourceType: 'workspace',          // Tipo de recurso compartilhado
+            resourceId: currentWorkspace.id,    // ID da área de trabalho
+            resourceName: currentWorkspace.name, // Nome da área de trabalho
             role: permission,                   // Permissão concedida
             status: 'pending',                  // Status inicial: pendente
             createdAt: firebase.database.ServerValue.TIMESTAMP
@@ -382,6 +405,26 @@ function renderReceivedInvite(invite, container) {
     const permissionEl = clone.querySelector('.invite-permission');
     permissionEl.textContent = formatPermission(invite.role);
     
+    // Adiciona texto aos botões para melhorar a usabilidade
+    const acceptBtn = clone.querySelector('.accept-invite-btn');
+    const declineBtn = clone.querySelector('.decline-invite-btn');
+    
+    // Adiciona texto ao botão de aceitar e ajusta a aparência
+    acceptBtn.classList.remove('p-1');
+    acceptBtn.classList.add('px-3', 'py-1.5', 'flex', 'items-center', 'gap-1', 'rounded-md', 'bg-emerald-50');
+    acceptBtn.innerHTML = `
+        <i data-lucide="check" class="h-4 w-4"></i>
+        <span class="text-sm font-medium">Aceitar</span>
+    `;
+    
+    // Adiciona texto ao botão de recusar e ajusta a aparência
+    declineBtn.classList.remove('p-1');
+    declineBtn.classList.add('px-3', 'py-1.5', 'flex', 'items-center', 'gap-1', 'rounded-md', 'bg-slate-50');
+    declineBtn.innerHTML = `
+        <i data-lucide="x" class="h-4 w-4"></i>
+        <span class="text-sm font-medium">Recusar</span>
+    `;
+    
     container.appendChild(clone);
 }
 
@@ -481,6 +524,29 @@ async function acceptInvite(inviteId) {
         }
         
         showSuccess('Convite aceito', 'Agora você tem acesso ao recurso compartilhado.');
+        
+        // Atualiza a lista de áreas de trabalho compartilhadas
+        import('../workspaces.js').then(module => {
+            console.log("Atualizando workspaces após aceitar convite...");
+            module.refreshWorkspaces();
+            
+            // Recarrega explicitamente para garantir que os dados sejam atualizados
+            setTimeout(() => {
+                console.log("Recarregando workspaces compartilhados após delay...");
+                module.loadSharedWorkspaces();
+            }, 1500);
+        });
+        
+        // Fecha o modal após alguns segundos
+        setTimeout(() => {
+            const manageInvitesModal = document.getElementById('manage-invites-modal');
+            if (manageInvitesModal && !manageInvitesModal.classList.contains('hidden')) {
+                manageInvitesModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    manageInvitesModal.classList.add('hidden');
+                }, 300);
+            }
+        }, 2000);
     } catch (error) {
         console.error('Erro ao aceitar convite:', error);
         showError('Erro', 'Ocorreu um erro ao aceitar o convite.');
@@ -561,10 +627,41 @@ export async function checkPendingInvitations() {
             }
         });
         
+        // Atualiza o badge de notificação na aba de convites recebidos
+        updateReceivedInvitesBadge(pendingCount);
+        
         return pendingCount;
     } catch (error) {
         console.error('Erro ao verificar convites pendentes:', error);
         return 0;
+    }
+}
+
+/**
+ * Atualiza o badge de notificação na aba de convites recebidos
+ * @param {number} count - Número de convites pendentes
+ */
+function updateReceivedInvitesBadge(count) {
+    // Atualiza o badge na aba dentro do modal
+    const tabBadge = document.getElementById('received-invites-badge');
+    if (tabBadge) {
+        if (count > 0) {
+            tabBadge.textContent = count > 9 ? '9+' : count.toString();
+            tabBadge.classList.remove('hidden');
+        } else {
+            tabBadge.classList.add('hidden');
+        }
+    }
+    
+    // Atualiza o badge no menu principal
+    const menuBadge = document.getElementById('menu-invites-badge');
+    if (menuBadge) {
+        if (count > 0) {
+            menuBadge.textContent = count > 9 ? '9+' : count.toString();
+            menuBadge.classList.remove('hidden');
+        } else {
+            menuBadge.classList.add('hidden');
+        }
     }
 }
 

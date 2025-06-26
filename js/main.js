@@ -12,6 +12,7 @@ import { initUI, createIcons, checkEmptyStates, showLoading, hideLoading, showSu
          showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
+import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
 
 // Variáveis globais
 let db;
@@ -49,6 +50,9 @@ async function initApp() {
         // Inicializa o sistema de convites
         initInvitations(db);
         
+        // Inicializa o sistema de áreas de trabalho
+        initWorkspaces(db);
+        
         // Verifica se há convites pendentes
         try {
             const pendingInvites = await checkPendingInvitations();
@@ -62,31 +66,29 @@ async function initApp() {
             console.error('Erro ao verificar convites pendentes:', error);
         }
         
-        // Carrega e renderiza as entidades existentes
-        try {
-            console.log("Carregando entidades existentes...");
-            const entities = await loadAllEntities();
-            console.log(`Entidades carregadas: ${entities.length}`, entities);
-            
-            // Renderiza as entidades carregadas na biblioteca
-            const entityList = document.getElementById('entity-list');
-            if (entityList) {
-                entityList.innerHTML = ''; // Limpa a lista atual
-                entities.forEach(entity => {
-                    console.log(`Renderizando entidade: ${entity.name}`, entity);
-                    renderEntityInLibrary(entity);
-                });
-            }
-        } catch (entityError) {
-            console.error("Erro ao carregar/renderizar entidades:", entityError);
+        // Aguarda a inicialização das áreas de trabalho antes de carregar dados
+        await new Promise(resolve => {
+            const checkWorkspace = () => {
+                const currentWorkspace = getCurrentWorkspace();
+                if (currentWorkspace) {
+                    resolve();
+                } else {
+                    setTimeout(checkWorkspace, 100);
+                }
+            };
+            checkWorkspace();
+        });
+        
+        // Configura listener para mudança de área de trabalho
+        window.addEventListener('workspaceChanged', async (event) => {
+            await loadWorkspaceData(event.detail.workspace);
+        });
+        
+        // Carrega dados da área de trabalho atual
+        const currentWorkspace = getCurrentWorkspace();
+        if (currentWorkspace) {
+            await loadWorkspaceData(currentWorkspace);
         }
-        
-        // Popula a caixa de ferramentas de campos
-        populateFieldsToolbox();
-        
-        // Carrega e renderiza os módulos e suas entidades
-        await loadAndRenderModules(renderModule);
-        await loadDroppedEntitiesIntoModules(renderDroppedEntity);
         
         // Configura os event listeners
         setupEventListeners();
@@ -96,6 +98,9 @@ async function initApp() {
         
         // Verifica os estados vazios
         checkEmptyStates();
+        
+        // Torna a função disponível globalmente para uso em outros módulos
+        window.getCurrentWorkspace = getCurrentWorkspace;
         
         hideLoading();
         document.getElementById('loading-overlay').style.display = 'none';
@@ -429,6 +434,12 @@ function setupEventListeners() {
             handleEditSubEntity(editSubEntityBtn); 
             return; 
         }
+        
+        const refreshSharedBtn = document.getElementById('refresh-shared-resources');
+        if (e.target === refreshSharedBtn || refreshSharedBtn?.contains(e.target)) {
+            loadAndRenderSharedResources();
+            return;
+        }
     });
     
     // Botões principais
@@ -752,6 +763,17 @@ function closeModal() {
 }
 
 async function handleAddNewEntity() {
+    const currentWorkspace = getCurrentWorkspace();
+    if (!currentWorkspace) {
+        showError('Erro', 'Nenhuma área de trabalho selecionada.');
+        return;
+    }
+    
+    if (!currentWorkspace.isOwner) {
+        showError('Erro', 'Você não tem permissão para criar entidades nesta área de trabalho.');
+        return;
+    }
+    
     // Prepara o HTML para os ícones
     const iconHtml = availableEntityIcons.map(icon => 
         `<button class="icon-picker-btn p-2 rounded-md hover:bg-indigo-100 transition-all" data-icon="${icon}">
@@ -814,10 +836,10 @@ async function handleAddNewEntity() {
                 const entityId = await createEntity({ 
                     name: formValues.name, 
                     icon: formValues.icon 
-                });
+                }, currentWorkspace.id);
                 
-                // Recarregar entidades
-                const updatedEntities = await loadAllEntities();
+                // Recarregar entidades da área de trabalho atual
+                const updatedEntities = await loadAllEntities(currentWorkspace.id);
                 
                 // Limpar a lista atual de entidades na interface
                 const entityList = document.getElementById('entity-list');
@@ -841,6 +863,17 @@ async function handleAddNewEntity() {
 }
 
 async function handleAddNewModule() {
+    const currentWorkspace = getCurrentWorkspace();
+    if (!currentWorkspace) {
+        showError('Erro', 'Nenhuma área de trabalho selecionada.');
+        return;
+    }
+    
+    if (!currentWorkspace.isOwner) {
+        showError('Erro', 'Você não tem permissão para criar módulos nesta área de trabalho.');
+        return;
+    }
+    
     const result = await showInputDialog(
         'Criar Novo Módulo',
         'Nome do Módulo',
@@ -851,7 +884,7 @@ async function handleAddNewModule() {
         showLoading('Criando módulo...');
         
         try {
-            const moduleId = await createModule(result.value);
+            const moduleId = await createModule(result.value, currentWorkspace.id);
             
             // Renderiza o novo módulo
             const moduleEl = renderModule({ id: moduleId, name: result.value });
@@ -1352,6 +1385,172 @@ function setupFieldPropertiesPanelEvents() {
     }
 }
 
+/**
+ * Renderiza um recurso compartilhado na lista
+ * @param {Object} resource - Dados do recurso compartilhado
+ */
+function renderSharedResource(resource) {
+    const container = document.getElementById('shared-resources-list');
+    if (!container) return;
+    
+    const itemHtml = `
+        <div class="shared-resource-item bg-white rounded-lg border border-emerald-100 shadow-sm p-3 hover:shadow-md transition-shadow" 
+             data-resource-id="${resource.id}" data-owner-id="${resource.ownerId}" data-resource-type="${resource.type}" data-role="${resource.role}">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="h-8 w-8 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <i data-lucide="layout-grid" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <span class="font-medium text-slate-700 block text-sm">Creator de ${resource.ownerName}</span>
+                        <span class="text-xs text-slate-500">Permissão: ${formatRoleText(resource.role)}</span>
+                    </div>
+                </div>
+                <button class="access-shared-resource-btn bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors text-sm flex items-center gap-1">
+                    <i data-lucide="log-in" class="h-4 w-4"></i>
+                    <span>Acessar</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Cria o elemento a partir do HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = itemHtml.trim();
+    const item = tempDiv.firstChild;
+    
+    // Adiciona o evento de clique para acessar o recurso
+    item.querySelector('.access-shared-resource-btn').addEventListener('click', () => {
+        accessSharedResource(resource);
+    });
+    
+    // Adiciona o item ao container
+    container.appendChild(item);
+    
+    // Atualiza os ícones
+    createIcons();
+}
+
+/**
+ * Formata o texto do papel/permissão
+ * @param {string} role - Papel/permissão
+ * @returns {string} - Texto formatado
+ */
+function formatRoleText(role) {
+    switch (role) {
+        case 'admin':
+            return 'Administrador';
+        case 'editor':
+            return 'Editor';
+        case 'viewer':
+            return 'Leitor';
+        default:
+            return role || 'Desconhecido';
+    }
+}
+
+/**
+ * Acessa um recurso compartilhado
+ * @param {Object} resource - Dados do recurso compartilhado
+ */
+async function accessSharedResource(resource) {
+    showLoading('Acessando recurso compartilhado...');
+    
+    try {
+        if (resource.type === 'module_constructor') {
+            // Carrega os módulos compartilhados
+            const sharedModules = await loadSharedUserModules(resource.ownerId);
+            
+            if (sharedModules.length > 0) {
+                // Mostra uma notificação de sucesso
+                showSuccess('Acesso concedido', `Você agora tem acesso aos módulos de ${resource.ownerName}.`);
+                
+                // Implementação real: redirecionar para uma página que mostra os módulos compartilhados
+                // window.location.href = `shared-modules.html?ownerId=${resource.ownerId}`;
+                
+                // Para demonstração, vamos simplesmente mostrar uma lista dos módulos compartilhados
+                let modulesHtml = '';
+                sharedModules.forEach(module => {
+                    modulesHtml += `<li class="p-2 border-b border-slate-100">${module.name}</li>`;
+                });
+                
+                Swal.fire({
+                    title: `Módulos de ${resource.ownerName}`,
+                    html: `<ul class="text-left mt-4 border rounded-lg bg-slate-50">${modulesHtml}</ul>`,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                showError('Sem módulos', 'Este usuário não possui módulos compartilhados.');
+            }
+        } else {
+            showError('Tipo não suportado', 'Este tipo de recurso compartilhado ainda não é suportado.');
+        }
+    } catch (error) {
+        console.error('Erro ao acessar recurso compartilhado:', error);
+        showError('Erro de acesso', 'Não foi possível acessar o recurso compartilhado. Verifique suas permissões.');
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * Carrega dados de uma área de trabalho específica
+ * @param {Object} workspace - Área de trabalho a ser carregada
+ */
+async function loadWorkspaceData(workspace) {
+    showLoading('Carregando área de trabalho...');
+    
+    try {
+        // Limpa dados atuais
+        const entityList = document.getElementById('entity-list');
+        const moduleContainer = document.getElementById('module-container');
+        
+        if (entityList) entityList.innerHTML = '';
+        if (moduleContainer) moduleContainer.innerHTML = '';
+        
+        const workspaceId = workspace.id;
+        const ownerId = workspace.isOwner ? null : workspace.ownerId;
+        
+        // Carrega entidades da área de trabalho
+        console.log("Carregando entidades da área de trabalho...", workspaceId);
+        const entities = await loadAllEntities(workspaceId, ownerId);
+        console.log(`Entidades carregadas: ${entities.length}`, entities);
+        
+        // Renderiza as entidades carregadas na biblioteca
+        if (entityList) {
+            entities.forEach(entity => {
+                console.log(`Renderizando entidade: ${entity.name}`, entity);
+                renderEntityInLibrary(entity);
+            });
+        }
+        
+        // Popula a caixa de ferramentas de campos
+        populateFieldsToolbox();
+        
+        // Carrega e renderiza os módulos e suas entidades
+        await loadAndRenderModules(renderModule, workspaceId, ownerId);
+        await loadDroppedEntitiesIntoModules(renderDroppedEntity, workspaceId, ownerId);
+        
+        // Verifica os estados vazios
+        checkEmptyStates();
+        
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao carregar dados da área de trabalho:', error);
+        showError('Erro', 'Ocorreu um erro ao carregar a área de trabalho.');
+    }
+}
+
+/**
+ * Carrega e renderiza os recursos compartilhados com o usuário
+ */
+async function loadAndRenderSharedResources() {
+    // Esta função agora é gerenciada pelo módulo de workspaces
+    // Não precisa fazer nada aqui
+}
+
 // Exporta funções públicas
 export {
     renderEntityInLibrary,
@@ -1362,5 +1561,6 @@ export {
     closeModal,
     openFieldPropertiesPanel,
     closeFieldPropertiesPanel,
-    setupFieldPropertiesPanelEvents
+    setupFieldPropertiesPanelEvents,
+    loadAndRenderSharedResources
 };
