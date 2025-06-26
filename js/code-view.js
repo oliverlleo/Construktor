@@ -1,5 +1,6 @@
 // Estrutura de arquivos e diretórios do sistema
 const fileStructure = {
+    // Arquivos principais
     'index.html': { path: '../index.html', type: 'html' },
     'css/style.css': { path: '../css/style.css', type: 'css' },
     'js/config.js': { path: '../js/config.js', type: 'javascript' },
@@ -7,14 +8,18 @@ const fileStructure = {
     'js/database.js': { path: '../js/database.js', type: 'javascript' },
     'js/ui.js': { path: '../js/ui.js', type: 'javascript' },
     'js/main.js': { path: '../js/main.js', type: 'javascript' },
+    'js/workspaces.js': { path: '../js/workspaces.js', type: 'javascript' },
     'js/login.js': { path: '../js/login.js', type: 'javascript' },
     'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
-    'js/workspaces.js': { path: '../js/workspaces.js', type: 'javascript' },
     'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },
     'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'javascript' },
     'pages/login.html': { path: '../pages/login.html', type: 'html' },
     'pages/code-view.html': { path: '../pages/code-view.html', type: 'html' },
-    'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' }
+    
+    // Arquivos de documentação e configuração
+    'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' },
+    'firebase_rules.json': { path: '../firebase_rules.json', type: 'json' },
+    'database-rules-guide.md': { path: '../database-rules-guide.md', type: 'markdown' }
 };
 
 // Código fonte dos arquivos
@@ -26,6 +31,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializa ícones Lucide
     if (typeof lucide !== 'undefined' && lucide) {
         lucide.createIcons();
+    }
+    
+    // Adiciona suporte para highlight de JSON e Markdown
+    if (hljs) {
+        // Carrega o módulo de JSON se ainda não estiver carregado
+        if (!hljs.getLanguage('json')) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/json.min.js';
+            document.head.appendChild(script);
+        }
+        
+        // Carrega o módulo de Markdown se ainda não estiver carregado
+        if (!hljs.getLanguage('markdown')) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js';
+            document.head.appendChild(script);
+        }
     }
     
     // Gera as abas para navegação de arquivos
@@ -202,7 +224,17 @@ function displayFileCode(filename) {
     
     // Atualiza a linguagem para o highlight
     const fileInfo = fileStructure[filename];
-    codeDisplay.className = `language-${fileInfo ? fileInfo.type : 'plaintext'}`;
+    const fileType = fileInfo ? fileInfo.type : 'plaintext';
+    
+    // Define a linguagem correta para o highlight
+    let language = fileType;
+    if (fileType === 'json') {
+        language = 'javascript'; // highlight.js usa javascript para JSON
+    } else if (fileType === 'markdown') {
+        language = 'markdown';
+    }
+    
+    codeDisplay.className = `language-${language}`;
     
     // Exibe o código
     codeDisplay.textContent = sourceCode[filename] || `// Carregando ${filename}...`;
@@ -267,6 +299,7 @@ function downloadAllFiles() {
     // Adiciona diretórios ao ZIP
     zip.folder('css');
     zip.folder('js');
+    zip.folder('js/user');
     zip.folder('pages');
     
     // Adiciona cada arquivo ao ZIP respeitando a estrutura de diretórios
@@ -282,11 +315,42 @@ function downloadAllFiles() {
         }
     });
     
-    // Gera o arquivo ZIP
+    // Adiciona o README com a versão atual
+    const versionDate = new Date().toLocaleDateString('pt-BR');
+    const readmeContent = `# Construktor - Sistema de Construção Visual de ERP/CRM
+
+Versão exportada em: ${versionDate}
+
+## Descrição
+O Construktor é um sistema visual para construção de ERP/CRM, permitindo criar e gerenciar módulos, entidades e campos de formulários.
+
+## Funcionalidades
+- Criação de módulos personalizados
+- Arrastar e soltar entidades nos módulos
+- Configuração de campos de formulário
+- Sistema de convites e permissões
+- Áreas de trabalho compartilhadas
+
+## Arquivos Importantes
+- \`index.html\` - Página principal da aplicação
+- \`js/main.js\` - Arquivo JavaScript principal
+- \`js/config.js\` - Configurações da aplicação
+- \`firebase_rules.json\` - Regras de segurança do Firebase
+- \`database-rules-guide.md\` - Guia para configuração das regras
+
+Para mais informações, acesse a documentação em \`YOUWARE.md\`.
+`;
+    zip.file('README.md', readmeContent);
+    
+    // Gera o arquivo ZIP com a data atual no nome
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+    
     zip.generateAsync({ type: 'blob' })
         .then(function(content) {
-            // Baixa o arquivo ZIP
-            saveAs(content, 'construktor.zip');
+            // Baixa o arquivo ZIP com a data no nome
+            saveAs(content, `construktor_${dateStr}.zip`);
+            showToast('Download iniciado! Todos os arquivos do sistema estão sendo baixados.', 'success');
         })
         .catch(function(error) {
             console.error('Erro ao gerar ZIP:', error);
