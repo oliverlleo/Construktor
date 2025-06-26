@@ -582,7 +582,8 @@ async function handleEntityDrop(event) {
     }
     
     // Salva a entidade no módulo
-    await saveEntityToModule(moduleId, entityId, entityName);
+    const currentWorkspace = getCurrentWorkspace();
+    await saveEntityToModule(moduleId, entityId, entityName, currentWorkspace ? currentWorkspace.id : 'default');
     
     // Notificação de sucesso
     showSuccess('Entidade adicionada!', 'Clique em configurar para definir seus campos.');
@@ -959,7 +960,8 @@ async function confirmAndRemoveEntityFromModule(card) {
     
     if (confirmed) { 
         try {
-            await deleteEntityFromModule(moduleId, entityId);
+            const currentWorkspace = getCurrentWorkspace();
+            await deleteEntityFromModule(moduleId, entityId, currentWorkspace ? currentWorkspace.id : 'default');
             card.remove();
             showSuccess('Removido!', `A entidade "${entityName}" foi removida do módulo.`);
         } catch (error) {
@@ -983,7 +985,8 @@ async function confirmAndRemoveCustomEntity(card) {
         showLoading('Eliminando entidade...');
         
         try {
-            await deleteEntity(entityId);
+            const currentWorkspace = getCurrentWorkspace();
+            await deleteEntity(entityId, currentWorkspace ? currentWorkspace.id : 'default');
             
             // Remove os cartões das entidades dos módulos
             document.querySelectorAll(`.dropped-entity-card[data-entity-id="${entityId}"]`).forEach(c => c.remove());
@@ -1016,7 +1019,8 @@ async function confirmAndRemoveModule(moduleEl) {
         showLoading('Eliminando módulo...');
         
         try {
-            await deleteModule(moduleId);
+            const currentWorkspace = getCurrentWorkspace();
+            await deleteModule(moduleId, currentWorkspace ? currentWorkspace.id : 'default');
             moduleEl.remove();
             checkEmptyStates();
             
@@ -1047,7 +1051,8 @@ async function saveCurrentStructure() {
             showSuccess('Guardado!', 'A estrutura da sub-entidade foi guardada com sucesso.');
         } else {
             // Guardar a estrutura da entidade principal
-            await saveEntityStructure(context.moduleId, context.entityId, context.entityName, attributes);
+            const currentWorkspace = getCurrentWorkspace();
+            await saveEntityStructure(context.moduleId, context.entityId, context.entityName, attributes, currentWorkspace ? currentWorkspace.id : 'default');
             
             hideLoading();
             showSuccess('Guardado!', `A estrutura da entidade "${context.entityName}" foi guardada com sucesso.`);
