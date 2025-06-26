@@ -245,16 +245,14 @@ function updateInvitesTabUI() {
 }
 
 /**
- * Envia um convite para outro usuário através de uma Cloud Function.
+ * Envia um convite para outro usuário criando o registro diretamente no banco de dados.
  */
 async function sendInvite() {
     const emailInput = document.getElementById('invite-email-input');
     const permissionSelect = document.getElementById('permission-select');
-    
     const email = emailInput.value.trim().toLowerCase();
     const permission = permissionSelect.value;
-    
-    // Validações de e-mail
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email === getUsuarioEmail()?.toLowerCase()) {
         showError('Erro', 'Por favor, insira um e-mail válido e diferente do seu.');
         return;
@@ -269,30 +267,39 @@ async function sendInvite() {
     showLoading('Enviando convite...');
 
     try {
-        // Verifica se o Firebase Functions está disponível
-        if (!firebase.functions) {
-            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
-        }
-        
-        const functions = firebase.functions();
-        const sendWorkspaceInvitation = functions.httpsCallable('sendWorkspaceInvitation');
-        await sendWorkspaceInvitation({
+        const currentUserProfile = await getUserProfileData();
+        const senderName = currentUserProfile.displayName || getUsuarioNome() || "Usuário Anônimo";
+
+        // Cria a referência para o novo convite no banco de dados
+        const newInviteRef = db.ref('invitations').push();
+
+        // Monta o objeto do convite
+        const inviteData = {
+            fromUserId: getUsuarioId(),
+            fromUserName: senderName,
             toEmail: email,
+            resourceType: 'workspace',
             resourceId: currentWorkspace.id,
             resourceName: currentWorkspace.name,
-            role: permission
-        });
-        
-        // Esconde o modal e mostra sucesso
+            role: permission,
+            status: 'pending', // A regra de segurança exige que o status inicial seja 'pending'
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        // Salva o convite diretamente no banco de dados
+        await newInviteRef.set(inviteData);
+
         document.getElementById('invite-modal').classList.add('hidden');
         hideLoading();
         showSuccess('Convite enviado', `Um convite foi enviado para ${email}.`);
-        loadInvites('sent'); // Recarrega a lista de convites enviados
+        if (activeTab === 'sent') {
+            loadInvites('sent');
+        }
 
     } catch (error) {
-        console.error('Erro ao chamar a função sendWorkspaceInvitation:', error);
+        console.error('Erro ao enviar convite diretamente:', error);
         hideLoading();
-        showError('Erro no Envio', error.message || 'Erro desconhecido ao enviar convite');
+        showError('Erro no Envio', 'Ocorreu um erro ao criar o convite. Verifique suas regras de segurança.');
     }
 }
 
@@ -302,19 +309,54 @@ async function sendInvite() {
  * @param {string} action - Ação a ser executada
  */
 async function manageInvite(inviteId, action) {
-    showLoading('A processar...');
+    showLoading('Processando...');
+
     try {
-        // Verifica se o Firebase Functions está disponível
-        if (!firebase.functions) {
-            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
-        }
+        const inviteRef = db.ref(`invitations/${inviteId}`);
+        const updates = {};
         
-        const functions = firebase.functions();
-        const manageInvitation = functions.httpsCallable('manageInvitation');
-        await manageInvitation({ inviteId, action });
+        if (action === 'accept') {
+            const inviteSnapshot = await inviteRef.once('value');
+            const inviteData = inviteSnapshot.val();
+
+            if (!inviteData) {
+                throw new Error("Convite não encontrado.");
+            }
+
+            // Atualiza o status do convite
+            updates[`invitations/${inviteId}/status`] = 'accepted';
+            updates[`invitations/${inviteId}/acceptedAt`] = firebase.database.ServerValue.TIMESTAMP;
+
+            // **PASSO CRÍTICO:** Adiciona a permissão no accessControl para o usuário que aceitou
+            const acceptedByUserId = getUsuarioId();
+            updates[`accessControl/${acceptedByUserId}/${inviteData.resourceId}`] = inviteData.role;
+
+        } else if (action === 'decline') {
+            updates[`invitations/${inviteId}/status`] = 'declined';
+        } else if (action === 'cancel') {
+            updates[`invitations/${inviteId}/status`] = 'canceled';
+        } else if (action === 'revoke') {
+            const inviteSnapshot = await inviteRef.once('value');
+            const inviteData = inviteSnapshot.val();
+            const invitedUserSnapshot = await db.ref('users').orderByChild('email').equalTo(inviteData.toEmail).once('value');
+            
+            let invitedUserId = null;
+            invitedUserSnapshot.forEach(snapshot => {
+                invitedUserId = snapshot.key;
+            });
+            
+            if (invitedUserId) {
+                 updates[`accessControl/${invitedUserId}/${inviteData.resourceId}`] = null; // Remove a permissão
+            }
+            updates[`invitations/${inviteId}/status`] = 'revoked';
+            updates[`invitations/${inviteId}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
+        }
+
+        // Aplica todas as atualizações de uma só vez
+        await db.ref().update(updates);
 
         hideLoading();
-        showSuccess('Sucesso!', `O convite foi ${action === 'accept' ? 'aceite' : (action === 'decline' ? 'recusado' : (action === 'cancel' ? 'cancelado' : 'revogado'))}.`);
+        showSuccess('Sucesso!', `O convite foi processado.`);
 
         // Recarrega a lista apropriada
         if (action === 'accept' || action === 'decline') {
@@ -329,35 +371,66 @@ async function manageInvite(inviteId, action) {
     } catch (error) {
         console.error(`Erro ao executar a ação '${action}':`, error);
         hideLoading();
-        showError('Erro', error.message || 'Erro desconhecido ao processar convite');
+        showError('Erro', 'Ocorreu um erro ao processar o convite.');
     }
 }
 
 /**
- * Atualiza a permissão de um utilizador através de uma Cloud Function.
+ * Atualiza a permissão de um utilizador diretamente no banco de dados.
  * @param {string} inviteId - O ID do convite original aceite
  * @param {string} newRole - A nova permissão
  */
 async function updateUserPermission(inviteId, newRole) {
-    showLoading('A atualizar permissão...');
+    showLoading('Atualizando permissão...');
     try {
-        // Verifica se o Firebase Functions está disponível
-        if (!firebase.functions) {
-            throw new Error('Firebase Functions não está disponível. Verifique se o SDK foi carregado corretamente.');
+        // Primeiro, verifica se o usuário atual é o dono do convite
+        const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
+        if (!inviteSnapshot.exists()) {
+            throw new Error("Convite não encontrado");
         }
         
-        const functions = firebase.functions();
-        const updateUserPermissionFn = functions.httpsCallable('updateUserPermission');
-        await updateUserPermissionFn({ inviteId, newRole });
+        const inviteData = inviteSnapshot.val();
+        const currentUserId = getUsuarioId();
+        
+        if (inviteData.fromUserId !== currentUserId) {
+            throw new Error("Você não tem permissão para alterar este convite");
+        }
+        
+        // Garante que o convite está no estado "accepted"
+        if (inviteData.status !== 'accepted') {
+            throw new Error("Só é possível alterar permissões de convites aceitos");
+        }
+        
+        // Atualiza a permissão no convite (uma operação por vez)
+        await db.ref(`invitations/${inviteId}`).update({
+            role: newRole,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        // Encontra o usuário convidado para atualizar o accessControl dele
+        let invitedUserId = null;
+        
+        // Busca o usuário pelo email do convite
+        const userSnapshot = await db.ref('users').orderByChild('email').equalTo(inviteData.toEmail).once('value');
+        userSnapshot.forEach(snapshot => {
+            invitedUserId = snapshot.key;
+        });
+        
+        if (!invitedUserId) {
+            throw new Error("Não foi possível encontrar o usuário para atualizar a permissão");
+        }
+        
+        // Atualiza o accessControl do usuário convidado com a nova permissão
+        await db.ref(`accessControl/${invitedUserId}/${inviteData.resourceId}`).set(newRole);
         
         hideLoading();
-        showSuccess('Permissão atualizada', 'A permissão do utilizador foi alterada com sucesso.');
+        showSuccess('Permissão atualizada', 'A permissão do usuário foi alterada com sucesso.');
         loadSharedAccess(); // Recarrega a lista de acessos
         
     } catch (error) {
         console.error('Erro ao atualizar permissão:', error);
         hideLoading();
-        showError('Erro na Atualização', error.message || 'Erro desconhecido ao atualizar permissão');
+        showError('Erro na Atualização', 'Não foi possível atualizar a permissão: ' + error.message);
     }
 }
 
@@ -604,12 +677,20 @@ async function loadSharedAccess() {
     showLoading('Carregando usuários com acesso...');
     
     try {
-        // Busca todos os convites aceitos que o usuário enviou
+        // Busca todos os convites enviados pelo usuário atual
         const query = db.ref('invitations')
             .orderByChild('fromUserId')
             .equalTo(userId);
         
         const snapshot = await query.once('value');
+        
+        if (!snapshot.exists()) {
+            // Não há convites enviados por este usuário
+            renderSharedAccess([]);
+            hideLoading();
+            return;
+        }
+        
         const sharedAccess = [];
         
         snapshot.forEach(childSnapshot => {
@@ -622,7 +703,7 @@ async function loadSharedAccess() {
                     id: inviteId,
                     email: invite.toEmail,
                     resourceId: invite.resourceId,
-                    resourceType: invite.resourceType,
+                    resourceType: invite.resourceType || 'workspace',
                     role: invite.role,
                     acceptedAt: invite.acceptedAt
                 });

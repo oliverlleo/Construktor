@@ -705,7 +705,8 @@ export async function deleteEntityRecord(moduleId, entityId, recordId) {
 export async function loadSharedResources() {
     try {
         const userId = getUsuarioId();
-        if (!userId) {
+        const userEmail = getUsuarioEmail()?.toLowerCase();
+        if (!userId || !userEmail) {
             throw new Error('Usuário não autenticado');
         }
         
@@ -725,49 +726,42 @@ export async function loadSharedResources() {
         // Lista para armazenar os recursos compartilhados
         sharedResources = [];
         
-        // Para cada recurso ao qual o usuário tem acesso
-        for (const resourceId in accessControl) {
-            if (resourceId === 'updatedAt') continue; // Ignore o timestamp
-            
-            const role = accessControl[resourceId];
-            
-            // Busca informações sobre o recurso
-            // Primeiro, vamos verificar de qual usuário é o recurso
+        try {
+            // Busca todos os convites aceitos enviados para este usuário
             const invitationsSnapshot = await db.ref('invitations')
-                .orderByChild('resourceId')
-                .equalTo(resourceId)
-                .get();
+                .orderByChild('toEmail')
+                .equalTo(userEmail)
+                .once('value');
             
-            if (!invitationsSnapshot.exists()) continue;
+            if (!invitationsSnapshot.exists()) {
+                console.log("Nenhum convite encontrado para o usuário:", userEmail);
+                return [];
+            }
             
-            // Encontra o convite aceito que contém este recurso
-            let ownerId = null;
-            let resourceName = "";
-            let resourceType = "";
-            
+            // Processa cada convite
             invitationsSnapshot.forEach(childSnapshot => {
                 const invite = childSnapshot.val();
-                if (invite.status === 'accepted' && invite.toEmail.toLowerCase() === getUsuarioEmail().toLowerCase()) {
-                    ownerId = invite.fromUserId;
-                    resourceName = invite.fromUserName;
-                    resourceType = invite.resourceType;
+                const resourceId = invite.resourceId;
+                
+                // Verifica se é um convite aceito e se o usuário tem permissão no accessControl
+                if (invite.status === 'accepted' && accessControl[resourceId]) {
+                    // Adiciona o recurso à lista
+                    sharedResources.push({
+                        id: resourceId,
+                        ownerId: invite.fromUserId,
+                        ownerName: invite.fromUserName || "Usuário",
+                        type: invite.resourceType || "workspace",
+                        role: accessControl[resourceId]
+                    });
                 }
             });
             
-            if (!ownerId) continue;
-            
-            // Adiciona o recurso à lista
-            sharedResources.push({
-                id: resourceId,
-                ownerId: ownerId,
-                ownerName: resourceName,
-                type: resourceType,
-                role: role
-            });
+            console.log("Recursos compartilhados carregados:", sharedResources);
+            return sharedResources;
+        } catch (inviteError) {
+            console.error("Erro ao buscar convites:", inviteError);
+            return [];
         }
-        
-        console.log("Recursos compartilhados carregados:", sharedResources);
-        return sharedResources;
     } catch (error) {
         console.error("Erro ao carregar recursos compartilhados:", error);
         return [];
