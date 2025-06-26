@@ -180,10 +180,9 @@ function setupManageInvitesModal() {
         const removeAccessBtn = event.target.closest('.remove-access-btn');
         if (removeAccessBtn) {
             const accessItem = removeAccessBtn.closest('.shared-access-item');
-            const userId = accessItem.dataset.userId;
             const email = accessItem.dataset.email;
             
-            if (userId && email) {
+            if (email) {
                 const confirmRemove = await Swal.fire({
                     title: 'Remover acesso',
                     text: `Tem certeza que deseja remover o acesso de ${email}?`,
@@ -196,7 +195,7 @@ function setupManageInvitesModal() {
                 });
                 
                 if (confirmRemove.isConfirmed) {
-                    await removeUserAccess(userId);
+                    await removeUserAccess(email);
                 }
             }
             return;
@@ -814,21 +813,43 @@ async function loadSharedAccess() {
         const snapshot = await query.once('value');
         const sharedAccess = [];
         
-        snapshot.forEach(childSnapshot => {
-            const invite = childSnapshot.val();
+        // Processa cada convite aceito
+        for (const childSnapshot of Object.values(snapshot.val() || {})) {
+            const invite = childSnapshot;
+            
             // Considera apenas convites aceitos
-            if (invite.status === 'accepted') {
+            if (invite.status === 'accepted' && invite.toEmail) {
+                // Busca o userId do usuário através do email no Firebase Auth
+                let toUserId = null;
+                
+                try {
+                    // Busca por usuários que aceitaram o convite usando o controle de acesso
+                    const accessControlSnapshot = await db.ref('accessControl').once('value');
+                    const accessControlData = accessControlSnapshot.val() || {};
+                    
+                    // Procura o usuário que tem acesso ao recurso
+                    for (const [userId, userAccess] of Object.entries(accessControlData)) {
+                        if (userAccess && userAccess[invite.resourceId]) {
+                            toUserId = userId;
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Erro ao buscar userId:', error);
+                }
+                
                 sharedAccess.push({
-                    id: childSnapshot.key,
-                    userId: invite.toUserId,
+                    id: Object.keys(snapshot.val()).find(key => snapshot.val()[key] === invite),
+                    userId: toUserId,
                     email: invite.toEmail,
                     resourceId: invite.resourceId,
                     resourceType: invite.resourceType,
                     role: invite.role,
-                    acceptedAt: invite.acceptedAt
+                    acceptedAt: invite.acceptedAt,
+                    inviteData: invite
                 });
             }
-        });
+        }
         
         // Renderiza os usuários com acesso
         renderSharedAccess(sharedAccess);
@@ -899,6 +920,12 @@ function renderSharedAccessItem(access, container) {
         saveBtn.classList.remove('hidden');
     });
     
+    // Adiciona evento para o botão de salvar
+    const saveBtn = accessItem.querySelector('.save-permission-btn');
+    saveBtn.addEventListener('click', function() {
+        updateUserPermission(access.userId || '', access.resourceId || '', permissionSelect.value, access.email || '');
+    });
+    
     container.appendChild(clone);
 }
 
@@ -910,7 +937,7 @@ function renderSharedAccessItem(access, container) {
  * @param {string} email - Email do usuário
  */
 async function updateUserPermission(userId, resourceId, newRole, email) {
-    if (!userId || !resourceId || !newRole) {
+    if (!resourceId || !newRole || !email) {
         showError('Erro', 'Dados inválidos para atualizar permissão.');
         return;
     }
@@ -928,6 +955,7 @@ async function updateUserPermission(userId, resourceId, newRole, email) {
         const snapshot = await invitesQuery.once('value');
         const updates = {};
         let found = false;
+        let targetUserId = userId;
         
         snapshot.forEach(childSnapshot => {
             const invite = childSnapshot.val();
@@ -939,9 +967,6 @@ async function updateUserPermission(userId, resourceId, newRole, email) {
                 updates[`invitations/${childSnapshot.key}/role`] = newRole;
                 updates[`invitations/${childSnapshot.key}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
                 
-                // Atualiza a permissão no controle de acesso
-                updates[`accessControl/${userId}/${resourceId}`] = newRole;
-                
                 found = true;
             }
         });
@@ -952,13 +977,34 @@ async function updateUserPermission(userId, resourceId, newRole, email) {
             return;
         }
         
+        // Se não temos o userId, busca através do controle de acesso
+        if (!targetUserId) {
+            const accessControlSnapshot = await db.ref('accessControl').once('value');
+            const accessControlData = accessControlSnapshot.val() || {};
+            
+            for (const [uId, userAccess] of Object.entries(accessControlData)) {
+                if (userAccess && userAccess[resourceId]) {
+                    targetUserId = uId;
+                    break;
+                }
+            }
+        }
+        
+        // Atualiza a permissão no controle de acesso se encontrou o userId
+        if (targetUserId) {
+            updates[`accessControl/${targetUserId}/${resourceId}`] = newRole;
+        }
+        
         // Aplica todas as atualizações
         await db.ref().update(updates);
         
         // Atualiza o dataset do item na UI
-        const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
+        const accessItem = document.querySelector(`.shared-access-item[data-email="${email}"]`);
         if (accessItem) {
             accessItem.dataset.role = newRole;
+            if (targetUserId) {
+                accessItem.dataset.userId = targetUserId;
+            }
         }
         
         hideLoading();
@@ -972,11 +1018,11 @@ async function updateUserPermission(userId, resourceId, newRole, email) {
 
 /**
  * Remove o acesso de um usuário
- * @param {string} userId - ID do usuário a ter o acesso removido
+ * @param {string} email - Email do usuário a ter o acesso removido
  */
-async function removeUserAccess(userId) {
-    if (!userId) {
-        showError('Erro', 'ID de usuário inválido.');
+async function removeUserAccess(email) {
+    if (!email) {
+        showError('Erro', 'Email de usuário inválido.');
         return;
     }
     
@@ -993,24 +1039,16 @@ async function removeUserAccess(userId) {
         const snapshot = await invitesQuery.once('value');
         const updates = {};
         let found = false;
+        let targetUserId = null;
         
         snapshot.forEach(childSnapshot => {
             const invite = childSnapshot.val();
-            if (invite.status === 'accepted' && invite.toEmail) {
-                // Verifica se é o usuário correto através do email
-                const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
-                if (accessItem && accessItem.dataset.email === invite.toEmail) {
-                    // Marca o convite como revogado
-                    updates[`invitations/${childSnapshot.key}/status`] = 'revoked';
-                    updates[`invitations/${childSnapshot.key}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
-                    
-                    // Remove o acesso no controle de acesso
-                    if (invite.resourceId) {
-                        updates[`accessControl/${userId}/${invite.resourceId}`] = null;
-                    }
-                    
-                    found = true;
-                }
+            if (invite.status === 'accepted' && invite.toEmail === email) {
+                // Marca o convite como revogado
+                updates[`invitations/${childSnapshot.key}/status`] = 'revoked';
+                updates[`invitations/${childSnapshot.key}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
+                
+                found = true;
             }
         });
         
@@ -1020,11 +1058,43 @@ async function removeUserAccess(userId) {
             return;
         }
         
+        // Busca o userId através do controle de acesso para remover a permissão
+        const accessControlSnapshot = await db.ref('accessControl').once('value');
+        const accessControlData = accessControlSnapshot.val() || {};
+        
+        // Encontra o userId e remove todos os acessos relacionados
+        for (const [uId, userAccess] of Object.entries(accessControlData)) {
+            if (userAccess) {
+                // Verifica se precisa remover acessos deste usuário buscando o email nos convites
+                const userInvitesQuery = db.ref('invitations')
+                    .orderByChild('fromUserId')
+                    .equalTo(currentUserId);
+                
+                const userInvitesSnapshot = await userInvitesQuery.once('value');
+                let shouldRemove = false;
+                
+                userInvitesSnapshot.forEach(childSnapshot => {
+                    const invite = childSnapshot.val();
+                    if (invite.toEmail === email && invite.status === 'accepted') {
+                        // Remove acesso a este recurso específico
+                        if (invite.resourceId && userAccess[invite.resourceId]) {
+                            updates[`accessControl/${uId}/${invite.resourceId}`] = null;
+                            shouldRemove = true;
+                        }
+                    }
+                });
+                
+                if (shouldRemove) {
+                    targetUserId = uId;
+                }
+            }
+        }
+        
         // Aplica todas as atualizações em uma única transação
         await db.ref().update(updates);
         
         // Remove o item da UI
-        const accessItem = document.querySelector(`.shared-access-item[data-user-id="${userId}"]`);
+        const accessItem = document.querySelector(`.shared-access-item[data-email="${email}"]`);
         if (accessItem) {
             accessItem.remove();
             

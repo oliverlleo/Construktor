@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
     <script>
         // Configuração para garantir que os ícones Lucide sejam registrados corretamente
@@ -69,7 +70,7 @@
 
     <!-- Link para o ficheiro CSS externo -->
     <link rel="stylesheet" href="css/style.css">
-<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
 <body class="text-slate-800 bg-slate-50">
 
     <!-- Indicador de Carregamento Visual -->
@@ -83,7 +84,7 @@
         <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex justify-between items-center shadow-sm z-30 sticky top-0">
             <div class="flex items-center gap-2 sm:gap-3">
                 <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
+                    <i class="fa-solid fa-bars w-6 h-6"></i>
                 </button>
                 <div class="relative">
                     <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
@@ -91,7 +92,7 @@
                             <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                         </div>
                         <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
-                        <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400"></i>
                     </button>
 
                     <div id="user-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
@@ -104,21 +105,21 @@
                         </div>
                         <hr class="my-2">
                         <a href="#" id="edit-profile-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i data-lucide="settings-2" class="h-4 w-4"></i>
+                            <i class="fa-solid fa-gear h-4 w-4"></i>
                             <span>Configurações do Perfil</span>
                         </a>
                         <a href="#" id="invite-user-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i data-lucide="user-plus" class="h-4 w-4"></i>
+                            <i class="fa-solid fa-user-plus h-4 w-4"></i>
                             <span>Convidar</span>
                         </a>
                         <a href="#" id="manage-invites-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 relative">
-                            <i data-lucide="inbox" class="h-4 w-4"></i>
+                            <i class="fa-solid fa-inbox h-4 w-4"></i>
                             <span>Gerenciar Convites</span>
                             <span id="menu-invites-badge" class="absolute hidden top-1 right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
                         </a>
                         <hr class="my-2">
                         <a href="#" id="logout-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i data-lucide="log-out" class="h-4 w-4"></i>
+                            <i class="fa-solid fa-right-from-bracket h-4 w-4"></i>
                             <span>Sair</span>
                         </a>
                     </div>
@@ -126,15 +127,15 @@
             </div>
             <div class="flex items-center gap-2 sm:gap-4">
                 <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    <i data-lucide="help-circle" class="h-5 w-5"></i>
+                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
                     <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
                 </button>
                 <a href="pages/code-view.html" target="_blank" class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md flex items-center gap-2 text-sm sm:text-base">
-                    <i data-lucide="code" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
                     <span class="font-medium">Ver Código</span>
                 </a>
                 <a href="pages/user-view.html" target="_blank" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center gap-2 text-sm sm:text-base">
-                    <i data-lucide="eye" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
                     <span class="font-medium">Ver Página</span>
                 </a>
                 <!-- Botão de logout removido pois agora está no menu do usuário -->
@@ -148,13 +149,13 @@
                 <div class="p-4 border-b border-slate-200 flex justify-between items-center sm:hidden">
                     <h2 class="font-bold text-lg text-indigo-800">Biblioteca</h2>
                     <button id="close-mobile-menu" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <i class="fa-solid fa-xmark w-5 h-5"></i>
                     </button>
                 </div>
                 
                 <div class="p-4 sm:p-5 border-b border-slate-200 hidden sm:block">
                     <h2 class="font-bold text-lg flex items-center gap-2 text-indigo-800">
-                        <i data-lucide="library" class="text-indigo-600"></i> Biblioteca de Componentes
+                        <i class="fa-solid fa-book-open text-indigo-600"></i> Biblioteca de Componentes
                     </h2>
                     <p class="text-sm text-slate-500 mt-1">Arraste os componentes para criar seu sistema</p>
                 </div>
@@ -164,10 +165,10 @@
                     <div id="workspace-selector" class="mb-4">
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="briefcase" class="h-4 w-4 text-purple-500"></i> Área de Trabalho
+                                <i class="fa-solid fa-briefcase h-4 w-4 text-purple-500"></i> Área de Trabalho
                             </h3>
                             <button id="share-workspace-btn" class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full hover:bg-purple-100 transition-all">
-                                <i data-lucide="share-2" class="h-3 w-3 inline-block mr-1"></i>Compartilhar
+                                <i class="fa-solid fa-share-nodes h-3 w-3 inline-block mr-1"></i>Compartilhar
                             </button>
                         </div>
                         
@@ -176,7 +177,7 @@
                                 <option value="">Carregando...</option>
                             </select>
                             <button id="add-workspace-btn" class="bg-purple-50 text-purple-600 px-2 py-1.5 rounded-lg hover:bg-purple-100 transition-all">
-                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <i class="fa-solid fa-plus h-4 w-4"></i>
                             </button>
                         </div>
                         
@@ -186,7 +187,7 @@
                     <div id="entity-library">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-md font-semibold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="database" class="h-4 w-4 text-indigo-500"></i> Entidades
+                                <i class="fa-solid fa-database h-4 w-4 text-indigo-500"></i> Entidades
                             </h3>
                             <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">Arraste →</span>
                         </div>
@@ -194,7 +195,7 @@
                         <div id="entity-list" class="space-y-2.5"></div>
                         
                         <button id="add-new-entity-btn" class="mt-4 w-full bg-indigo-50 text-indigo-700 px-4 py-3 rounded-lg hover:bg-indigo-100 transition-all flex items-center gap-2 justify-center border border-indigo-100 shadow-sm">
-                            <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                            <i class="fa-solid fa-circle-plus h-5 w-5"></i>
                             <span class="font-medium">Criar Nova Entidade</span>
                         </button>
                     </div>
@@ -203,10 +204,10 @@
                     <div id="shared-resources" class="mt-5 pt-5 border-t border-slate-200">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-md font-semibold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="share-2" class="h-4 w-4 text-emerald-500"></i> Compartilhados Comigo
+                                <i class="fa-solid fa-share-nodes h-4 w-4 text-emerald-500"></i> Compartilhados Comigo
                             </h3>
                             <button id="refresh-shared-resources" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full hover:bg-emerald-100 transition-all">
-                                <i data-lucide="refresh-cw" class="h-3 w-3 inline-block mr-1"></i>Atualizar
+                                <i class="fa-solid fa-arrows-rotate h-3 w-3 inline-block mr-1"></i>Atualizar
                             </button>
                         </div>
                         
@@ -215,7 +216,7 @@
                         </div>
                         
                         <div id="no-shared-resources" class="bg-slate-50 rounded-lg p-3 text-center text-slate-500 border border-slate-200">
-                            <i data-lucide="info" class="h-5 w-5 mx-auto mb-2 text-slate-400"></i>
+                            <i class="fa-solid fa-circle-info h-5 w-5 mx-auto mb-2 text-slate-400"></i>
                             <p class="text-sm">Nenhum recurso compartilhado encontrado</p>
                         </div>
                     </div>
@@ -223,10 +224,10 @@
                     <div id="quick-tip" class="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border border-indigo-100 shadow-sm transition-all duration-300">
                         <div class="flex justify-between items-start">
                             <h3 class="font-semibold text-indigo-800 flex items-center gap-2 mb-2">
-                                <i data-lucide="lightbulb" class="h-4 w-4 text-amber-500"></i> Dica Rápida
+                                <i class="fa-solid fa-lightbulb h-4 w-4 text-amber-500"></i> Dica Rápida
                             </h3>
                             <button class="close-tip-btn text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-white/50" data-tip-id="quick-tip">
-                                <i data-lucide="x" class="h-4 w-4"></i>
+                                <i class="fa-solid fa-xmark h-4 w-4"></i>
                             </button>
                         </div>
                         <p class="text-sm text-slate-700">Crie módulos para organizar as funcionalidades do seu sistema. Arraste entidades para os módulos e configure-as conforme necessário.</p>
@@ -238,10 +239,10 @@
             <section class="flex-1 overflow-hidden flex flex-col sm:ml-80">
                 <div class="border-b border-slate-200 bg-white py-3 px-4 sm:px-6 flex justify-between items-center shadow-sm">
                     <h2 class="text-lg sm:text-xl font-bold flex items-center gap-2 text-slate-800">
-                        <i data-lucide="box-select" class="text-indigo-500"></i> Módulos do Sistema
+                        <i class="fa-solid fa-table-cells text-indigo-500"></i> Módulos do Sistema
                     </h2>
                     <button id="add-new-module-btn" class="bg-indigo-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm text-sm sm:text-base">
-                        <i data-lucide="plus" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                        <i class="fa-solid fa-plus h-4 w-4 sm:h-5 sm:w-5"></i>
                         <span class="font-medium">Adicionar</span>
                     </button>
                 </div>
@@ -252,25 +253,25 @@
                         <div id="welcome-tip" class="bg-white rounded-xl shadow-md p-4 sm:p-5 mb-5 border border-slate-200 transition-all duration-300">
                             <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                                 <div class="bg-blue-100 p-3 rounded-full text-blue-600 self-center sm:self-start">
-                                    <i data-lucide="info" class="h-6 w-6"></i>
+                                    <i class="fa-solid fa-circle-info h-6 w-6"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex justify-between items-start mb-1">
                                         <h3 class="font-semibold text-lg text-slate-800">Bem-vindo ao Construktor</h3>
                                         <button class="close-tip-btn text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100" data-tip-id="welcome-tip">
-                                            <i data-lucide="x" class="h-5 w-5"></i>
+                                            <i class="fa-solid fa-xmark h-5 w-5"></i>
                                         </button>
                                     </div>
                                     <p class="text-slate-600 text-sm sm:text-base">Comece criando módulos para seu sistema e adicionando entidades a eles.</p>
                                     <div class="flex flex-wrap gap-2 sm:gap-3 mt-3">
                                         <div class="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs sm:text-sm">
-                                            <i data-lucide="layout-grid" class="h-3 w-3 sm:h-4 sm:w-4"></i> Passo 1: Crie módulos
+                                            <i class="fa-solid fa-table-cells-large h-3 w-3 sm:h-4 sm:w-4"></i> Passo 1: Crie módulos
                                         </div>
                                         <div class="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs sm:text-sm">
-                                            <i data-lucide="move-horizontal" class="h-3 w-3 sm:h-4 sm:w-4"></i> Passo 2: Arraste entidades
+                                            <i class="fa-solid fa-left-right h-3 w-3 sm:h-4 sm:w-4"></i> Passo 2: Arraste entidades
                                         </div>
                                         <div class="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs sm:text-sm">
-                                            <i data-lucide="settings-2" class="h-3 w-3 sm:h-4 sm:w-4"></i> Passo 3: Configure campos
+                                            <i class="fa-solid fa-gear h-3 w-3 sm:h-4 sm:w-4"></i> Passo 3: Configure campos
                                         </div>
                                     </div>
                                 </div>
@@ -280,13 +281,13 @@
                         <!-- Dica sobre reorganização de módulos -->
                         <div id="modules-tip" class="bg-amber-50 rounded-lg shadow-sm p-3 sm:p-4 mb-5 border border-amber-200 flex items-center gap-3">
                             <div class="text-amber-600">
-                                <i data-lucide="move" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                                <i class="fa-solid fa-arrows-up-down-left-right h-5 w-5 sm:h-6 sm:w-6"></i>
                             </div>
                             <div class="flex-1">
                                 <p class="text-amber-800 text-sm sm:text-base">Você pode reorganizar os módulos arrastando-os para mudar sua ordem.</p>
                             </div>
                             <button class="close-tip-btn text-amber-500 hover:text-amber-700 p-1 rounded-full hover:bg-amber-100" data-tip-id="modules-tip">
-                                <i data-lucide="x" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                                <i class="fa-solid fa-xmark h-4 w-4 sm:h-5 sm:w-5"></i>
                             </button>
                         </div>
                         
@@ -297,12 +298,12 @@
                         <!-- Elemento visual para indicar onde criar módulos quando vazio -->
                         <div id="empty-state" class="hidden flex flex-col items-center justify-center bg-white rounded-xl border-2 border-dashed border-indigo-200 p-6 sm:p-10 mt-4 text-center">
                             <div class="bg-indigo-100 p-3 rounded-full mb-3">
-                                <i data-lucide="layout-grid" class="h-8 w-8 text-indigo-600"></i>
+                                <i class="fa-solid fa-table-cells-large h-8 w-8 text-indigo-600"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-slate-800 mb-2">Nenhum módulo criado</h3>
                             <p class="text-slate-600 max-w-md mb-4 text-sm sm:text-base">Módulos ajudam a organizar as funcionalidades do seu sistema em categorias lógicas como Vendas, Compras, Recursos Humanos, etc.</p>
                             <button id="empty-add-module-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm">
-                                <i data-lucide="plus" class="h-5 w-5"></i>
+                                <i class="fa-solid fa-plus h-5 w-5"></i>
                                 <span>Criar seu primeiro módulo</span>
                             </button>
                         </div>
@@ -314,7 +315,7 @@
         <!-- Botão flutuante para adicionar módulo (visível apenas em mobile) -->
         <div class="fixed right-4 bottom-4 sm:hidden z-20">
             <button id="mobile-add-module-btn" class="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center">
-                <i data-lucide="plus" class="h-6 w-6"></i>
+                <i class="fa-solid fa-plus h-6 w-6"></i>
             </button>
         </div>
     </div>
@@ -325,14 +326,14 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="text-xl font-bold text-slate-800">Meu Perfil</h2>
                 <button id="close-profile-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
-                    <i data-lucide="x" class="h-5 w-5"></i>
+                    <i class="fa-solid fa-xmark h-5 w-5"></i>
                 </button>
             </div>
             <div class="flex flex-col items-center mb-6">
                 <div class="relative mb-4">
                     <img id="modal-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-24 w-24 rounded-full border-4 border-white shadow-lg">
                     <button id="change-avatar-button" class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-md hover:bg-indigo-700 transition-all">
-                        <i data-lucide="camera" class="h-4 w-4"></i>
+                        <i class="fa-solid fa-camera h-4 w-4"></i>
                     </button>
                 </div>
                 <input type="file" id="avatar-upload-input" accept="image/*" class="hidden">
@@ -360,7 +361,7 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="text-xl font-bold text-slate-800">Convidar Usuário</h2>
                 <button id="close-invite-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
-                    <i data-lucide="x" class="h-5 w-5"></i>
+                    <i class="fa-solid fa-xmark h-5 w-5"></i>
                 </button>
             </div>
             <p class="text-slate-600 mb-4">Convide outros usuários para acessar o sistema como administrador.</p>
@@ -391,7 +392,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-slate-800">Gerenciar Convites</h2>
                 <button id="close-manage-invites-modal" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
-                    <i data-lucide="x" class="h-5 w-5"></i>
+                    <i class="fa-solid fa-xmark h-5 w-5"></i>
                 </button>
             </div>
             
@@ -408,7 +409,7 @@
             
             <div id="sent-invites-container" class="overflow-y-auto max-h-64">
                 <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-sent-invites">
-                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <i class="fa-solid fa-circle-info h-6 w-6 mx-auto mb-2 text-slate-400"></i>
                     <p>Você ainda não enviou nenhum convite</p>
                 </div>
                 <!-- Aqui serão adicionados os convites enviados dinamicamente -->
@@ -419,7 +420,7 @@
             
             <div id="received-invites-container" class="overflow-y-auto max-h-64 hidden">
                 <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-received-invites">
-                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <i class="fa-solid fa-circle-info h-6 w-6 mx-auto mb-2 text-slate-400"></i>
                     <p>Você não recebeu nenhum convite</p>
                 </div>
                 <!-- Aqui serão adicionados os convites recebidos dinamicamente -->
@@ -430,7 +431,7 @@
             
             <div id="access-management-container" class="overflow-y-auto max-h-64 hidden">
                 <div class="bg-slate-50 rounded-lg p-4 text-center text-slate-500" id="no-shared-access">
-                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>
+                    <i class="fa-solid fa-circle-info h-6 w-6 mx-auto mb-2 text-slate-400"></i>
                     <p>Nenhum usuário com acesso compartilhado encontrado</p>
                 </div>
                 <!-- Aqui serão adicionados os usuários com acesso compartilhado -->
@@ -449,15 +450,15 @@
                 <div id="modal-breadcrumb" class="flex items-center text-sm sm:text-lg overflow-hidden"></div>
                 <div class="flex items-center gap-2 sm:gap-4">
                     <button id="modal-back-btn" class="hidden text-slate-600 bg-white hover:bg-slate-100 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors flex items-center gap-1 sm:gap-2 shadow-sm border border-slate-200 text-sm">
-                        <i data-lucide="arrow-left" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                        <i class="fa-solid fa-arrow-left h-4 w-4 sm:h-5 sm:w-5"></i>
                         <span class="hidden sm:inline">Voltar</span>
                     </button>
                     <button id="save-structure-btn" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors flex items-center gap-1 sm:gap-2 shadow-md text-sm">
-                        <i data-lucide="save" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                        <i class="fa-solid fa-floppy-disk h-4 w-4 sm:h-5 sm:w-5"></i>
                         <span>Guardar</span>
                     </button>
                     <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 bg-white p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                        <i data-lucide="x" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                        <i class="fa-solid fa-xmark h-5 w-5 sm:h-6 sm:w-6"></i>
                     </button>
                 </div>
             </div>
@@ -468,14 +469,14 @@
                     <div class="p-4 flex items-center justify-between sm:hidden border-b border-slate-200">
                         <h3 class="font-bold text-md text-indigo-800">Caixa de Ferramentas</h3>
                         <button id="toggle-modal-sidebar" class="p-1 rounded-lg text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="chevron-down" class="h-5 w-5"></i>
+                            <i class="fa-solid fa-chevron-down h-5 w-5"></i>
                         </button>
                     </div>
                     
                     <div id="modal-sidebar-content" class="p-4 sm:p-5 hidden sm:block">
                         <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-4">
                             <h3 class="font-bold text-md mb-2 flex items-center gap-2 text-indigo-800">
-                                <i data-lucide="wrench" class="text-indigo-600"></i> Caixa de Ferramentas
+                                <i class="fa-solid fa-wrench text-indigo-600"></i> Caixa de Ferramentas
                             </h3>
                             <p class="text-xs text-slate-500 mb-3">Arraste os campos para o formulário à direita</p>
                             <div id="fields-toolbox" class="space-y-2.5"></div>
@@ -483,7 +484,7 @@
                         
                         <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 shadow-sm">
                             <h3 class="font-semibold text-amber-800 flex items-center gap-2 mb-2">
-                                <i data-lucide="lightbulb" class="h-4 w-4 text-amber-500"></i> Ajuda
+                                <i class="fa-solid fa-lightbulb h-4 w-4 text-amber-500"></i> Ajuda
                             </h3>
                             <ul class="text-sm text-amber-700 space-y-2 list-disc pl-4">
                                 <li>Arraste campos da caixa de ferramentas para o formulário</li>
@@ -498,7 +499,7 @@
                 <main class="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6">
                     <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md min-h-full border border-slate-200">
                         <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 flex items-center gap-2">
-                            <i data-lucide="form-input" class="text-indigo-500 h-4 w-4 sm:h-5 sm:w-5"></i> Editor de Formulário
+                            <i class="fa-solid fa-align-left text-indigo-500 h-4 w-4 sm:h-5 sm:w-5"></i> Editor de Formulário
                         </h3>
                         <p class="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6">Crie a estrutura do formulário arrastando os campos da caixa de ferramentas</p>
                         
@@ -506,7 +507,7 @@
                         
                         <div id="empty-form-state" class="hidden flex flex-col items-center justify-center text-center py-6 sm:py-10">
                             <div class="bg-indigo-100 p-3 rounded-full mb-3">
-                                <i data-lucide="arrow-big-left-dash" class="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600"></i>
+                                <i class="fa-solid fa-arrow-left h-6 w-6 sm:h-8 sm:w-8 text-indigo-600"></i>
                             </div>
                             <h3 class="text-base sm:text-lg font-semibold text-slate-700 mb-2">Formulário Vazio</h3>
                             <p class="text-slate-500 max-w-md text-sm">Arraste campos da caixa de ferramentas para começar a criar seu formulário.</p>
@@ -522,11 +523,11 @@
         <!-- Cabeçalho do painel -->
         <div class="p-4 sm:p-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <i id="field-properties-icon" data-lucide="calendar" class="h-5 w-5 text-indigo-600"></i>
+                <i id="field-properties-icon" class="fa-solid fa-calendar h-5 w-5 text-indigo-600"></i>
                 <h3 class="font-bold text-lg text-slate-800">Propriedades do Campo</h3>
             </div>
             <button id="close-properties-panel" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                <i data-lucide="x" class="h-5 w-5"></i>
+                <i class="fa-solid fa-xmark h-5 w-5"></i>
             </button>
         </div>
         
@@ -793,14 +794,14 @@
                 <div class="flex justify-between items-center">
                     <h3 class="module-title text-base sm:text-lg font-bold"></h3>
                     <button class="delete-module-btn text-white/70 hover:text-white p-1 sm:p-1.5 rounded-md transition-colors hover:bg-white/10">
-                        <i data-lucide="trash-2" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                        <i class="fa-solid fa-trash-can h-4 w-4 sm:h-5 sm:w-5"></i>
                     </button>
                 </div>
             </div>
             <div class="entities-dropzone p-3 sm:p-4 space-y-2 sm:space-y-3 min-h-[150px] sm:min-h-[220px] bg-gradient-to-b from-indigo-50/50 to-white"></div>
             <div class="border-t border-slate-200 p-2 sm:p-3 bg-slate-50/80">
                 <div class="text-xs text-slate-500 flex items-center gap-1.5">
-                    <i data-lucide="move-horizontal" class="h-3 w-3 sm:h-3.5 sm:w-3.5"></i>
+                    <i class="fa-solid fa-left-right h-3 w-3 sm:h-3.5 sm:w-3.5"></i>
                     <span>Arraste entidades para este módulo</span>
                 </div>
             </div>
@@ -817,9 +818,9 @@
             </div>
             <div class="flex items-center gap-1 sm:gap-2">
                 <button class="delete-custom-entity-btn text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors hidden">
-                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    <i class="fa-solid fa-trash-can h-4 w-4"></i>
                 </button>
-                <i data-lucide="grip-vertical" class="text-slate-400 h-4 w-4 sm:h-5 sm:w-5"></i>
+                <i class="fa-solid fa-grip-vertical text-slate-400 h-4 w-4 sm:h-5 sm:w-5"></i>
             </div>
         </div>
     </template>
@@ -837,10 +838,10 @@
             </div>
             <div class="flex items-center gap-1 sm:gap-2">
                 <button class="configure-btn text-indigo-600 hover:text-indigo-800 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-indigo-50">
-                    <i data-lucide="settings-2" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-gear h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
                 <button class="delete-entity-btn text-slate-500 hover:text-red-600 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-red-50">
-                    <i data-lucide="trash-2" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-trash-can h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
             </div>
         </div>
@@ -858,7 +859,7 @@
     <template id="form-field-template">
         <div class="form-field-card bg-white p-3 sm:p-4 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between hover:border-indigo-200 transition-colors" data-field-id="">
             <div class="flex items-center gap-2 sm:gap-3">
-                <i data-lucide="grip-vertical" class="cursor-move text-slate-400 h-4 w-4 sm:h-5 sm:w-5"></i>
+                <i class="fa-solid fa-grip-vertical cursor-move text-slate-400 h-4 w-4 sm:h-5 sm:w-5"></i>
                 <div class="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-600">
                     <i class="field-icon"></i>
                 </div>
@@ -869,13 +870,13 @@
             </div>
             <div class="flex items-center gap-1 sm:gap-1.5">
                 <button class="edit-sub-entity-btn text-emerald-600 hover:text-emerald-700 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-emerald-50 hidden" title="Editar Estrutura da Sub-Entidade">
-                    <i data-lucide="file-cog" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-file-pen h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
                 <button class="edit-field-btn text-blue-600 hover:text-blue-700 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-blue-50" title="Editar Propriedade">
-                    <i data-lucide="pencil" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-pen h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
                 <button class="delete-field-btn text-slate-500 hover:text-red-600 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-red-50" title="Eliminar Propriedade">
-                    <i data-lucide="trash-2" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <i class="fa-solid fa-trash-can h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
             </div>
         </div>
@@ -888,7 +889,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <i data-lucide="mail" class="h-4 w-4 text-indigo-500"></i>
+                            <i class="fa-solid fa-envelope h-4 w-4 text-indigo-500"></i>
                             <span class="invite-email font-medium text-slate-700"></span>
                         </div>
                         <div class="flex items-center gap-1 text-xs text-slate-500">

@@ -7,7 +7,6 @@ import { TIPS_STATE } from './config.js';
 import { getUserPreference, saveUserPreference } from './database.js';
 
 // Variável para controle do estado da interface
-let iconsAvailable = false;
 let mobileSidebarOpen = false;
 let modalSidebarOpen = false;
 let isLoading = false;
@@ -16,10 +15,7 @@ let isLoading = false;
  * Inicializa elementos e comportamentos da interface do usuário
  */
 export function initUI() {
-    if (typeof lucide !== 'undefined' && lucide) { 
-        iconsAvailable = true; 
-        createIcons();
-    }
+    // Font Awesome já é inicializado automaticamente
     
     setupMobileInteractions();
     setupTips();
@@ -27,16 +23,12 @@ export function initUI() {
 }
 
 /**
- * Tenta criar ícones se a biblioteca Lucide estiver disponível
+ * Função mantida para compatibilidade com código existente
+ * Font Awesome não precisa de inicialização manual
  */
-export function createIcons() { 
-    if (iconsAvailable) { 
-        try {
-            lucide.createIcons(); 
-        } catch (error) {
-            console.error("Erro ao criar ícones:", error);
-        }
-    } 
+export function createIcons() {
+    // Font Awesome é inicializado automaticamente
+    // Esta função é mantida para compatibilidade com o código existente
 }
 
 /**
