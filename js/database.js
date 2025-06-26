@@ -189,12 +189,27 @@ export async function loadStructureForEntity(moduleId, entityId, workspaceId = '
             throw new Error('Usuário não autenticado');
         }
         
-        const snapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).get();
+        const path = `users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`;
+        
+        console.log("Carregando estrutura do Firebase:", {
+            path,
+            userId,
+            workspaceId,
+            moduleId,
+            entityId,
+            ownerId
+        });
+        
+        const snapshot = await db.ref(path).get();
         if (!snapshot.exists()) {
+            console.log("Nenhuma estrutura encontrada no Firebase para:", path);
             return { attributes: [] };
         }
         
-        return snapshot.val();
+        const structure = snapshot.val();
+        console.log("Estrutura carregada do Firebase:", structure);
+        
+        return structure;
     } catch (error) {
         console.error("Erro ao carregar estrutura da entidade:", error);
         showError('Erro de Dados', 'Não foi possível carregar a estrutura da entidade.');
@@ -411,9 +426,22 @@ export async function saveEntityStructure(moduleId, entityId, entityName, attrib
         }
         
         const schema = { entityName, attributes };
-        // Caminho corrigido para incluir workspaceId
-        await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).set(schema);
+        const path = `users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`;
         
+        console.log("Salvando estrutura no Firebase:", {
+            path,
+            schema,
+            userId,
+            workspaceId,
+            moduleId,
+            entityId,
+            attributesCount: attributes.length
+        });
+        
+        // Caminho corrigido para incluir workspaceId
+        await db.ref(path).set(schema);
+        
+        console.log("Estrutura salva com sucesso no Firebase");
         hideLoading();
     } catch (error) {
         hideLoading();
@@ -429,9 +457,10 @@ export async function saveEntityStructure(moduleId, entityId, entityName, attrib
  * @param {string} entityId - ID da entidade pai
  * @param {string} parentFieldId - ID do campo pai
  * @param {Array} attributes - Atributos da sub-entidade
+ * @param {string} workspaceId - ID da área de trabalho
  * @returns {Promise<void>}
  */
-export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, attributes) {
+export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, attributes, workspaceId = 'default') {
     try {
         showLoading('Salvando estrutura...');
         
@@ -440,14 +469,15 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
             throw new Error('Usuário não autenticado');
         }
         
-        const parentSchemaSnapshot = await db.ref(`users/${userId}/schemas/${moduleId}/${entityId}`).get();
+        // Caminho corrigido para incluir workspaceId
+        const parentSchemaSnapshot = await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).get();
         if (parentSchemaSnapshot.exists()) {
             const parentSchema = parentSchemaSnapshot.val();
             const parentField = parentSchema.attributes.find(attr => attr.id === parentFieldId);
             
             if (parentField) {
                 parentField.subSchema.attributes = attributes;
-                await db.ref(`users/${userId}/schemas/${moduleId}/${entityId}`).set(parentSchema);
+                await db.ref(`users/${userId}/workspaces/${workspaceId}/schemas/${moduleId}/${entityId}`).set(parentSchema);
             }
         }
         

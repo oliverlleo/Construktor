@@ -23,12 +23,21 @@ export function initUI() {
 }
 
 /**
- * Função mantida para compatibilidade com código existente
- * Font Awesome não precisa de inicialização manual
+ * Função para inicializar ícones
+ * Agora também inicializa os ícones Lucide, quando disponíveis
  */
 export function createIcons() {
     // Font Awesome é inicializado automaticamente
-    // Esta função é mantida para compatibilidade com o código existente
+    
+    // Também inicializa ícones Lucide, se disponíveis
+    if (window.lucide) {
+        try {
+            // Tentativa de criar ícones Lucide
+            lucide.createIcons();
+        } catch (error) {
+            console.warn('Erro ao criar ícones Lucide:', error);
+        }
+    }
 }
 
 /**

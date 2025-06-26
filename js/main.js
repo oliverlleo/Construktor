@@ -153,7 +153,13 @@ function renderEntityInLibrary(entity) {
     }
     
     list.appendChild(clone);
-    createIcons();
+    
+    // Garantir que os ícones sejam renderizados imediatamente
+    if (window.lucide) {
+        lucide.createIcons();
+    } else {
+        createIcons();
+    }
     
     // Configurar Sortable.js para arrastar entidades da biblioteca
     if (list && !list._sortable) {
@@ -213,7 +219,13 @@ function renderDroppedEntity(moduleId, entityId, entityData, entityInfo) {
     clone.querySelector('.entity-name').textContent = entityData.entityName;
     card.classList.remove('animate-pulse');
     dropzone.appendChild(clone);
-    createIcons();
+    
+    // Garantir que os ícones sejam renderizados imediatamente
+    if (window.lucide) {
+        lucide.createIcons();
+    } else {
+        createIcons();
+    }
 }
 
 function populateFieldsToolbox() {
@@ -571,7 +583,13 @@ async function handleEntityDrop(event) {
 
     clone.querySelector('.entity-name').textContent = entityName;
     to.appendChild(clone);
-    createIcons();
+    
+    // Garantir que os ícones sejam renderizados imediatamente
+    if (window.lucide) {
+        lucide.createIcons();
+    } else {
+        createIcons();
+    }
     
     // Adiciona classe de animação temporária
     const entityCard = to.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
@@ -740,11 +758,22 @@ function openModal(context) {
     if (context.isSubEntity) {
         (context.subSchema.attributes || []).forEach(renderFormField);
     } else {
-        loadStructureForEntity(context.moduleId, context.entityId)
+        // Obter a área de trabalho atual e seus parâmetros
+        const currentWorkspace = getCurrentWorkspace();
+        const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
+        const ownerId = currentWorkspace && !currentWorkspace.isOwner ? currentWorkspace.ownerId : null;
+        
+        loadStructureForEntity(context.moduleId, context.entityId, workspaceId, ownerId)
             .then(schema => {
+                console.log("Estrutura carregada para entidade:", context.entityId, schema);
                 if (schema && schema.attributes && schema.attributes.length > 0) {
                     schema.attributes.forEach(renderFormField);
+                } else {
+                    console.log("Nenhuma estrutura encontrada ou estrutura vazia para entidade:", context.entityId);
                 }
+            })
+            .catch(error => {
+                console.error("Erro ao carregar estrutura da entidade:", error);
             });
     }
     
@@ -1039,26 +1068,60 @@ async function saveCurrentStructure() {
     const fieldCards = document.getElementById('form-builder-dropzone').querySelectorAll('.form-field-card');
     const attributes = Array.from(fieldCards).map(card => JSON.parse(card.dataset.fieldData));
 
+    console.log("Salvando estrutura:", {
+        context,
+        attributes,
+        fieldCardsCount: fieldCards.length
+    });
+
     showLoading('Guardando estrutura...');
 
     try {
+        const currentWorkspace = getCurrentWorkspace();
+        const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
+        
+        console.log("Salvando com workspaceId:", workspaceId, "isOwner:", currentWorkspace?.isOwner);
+        
         if (context.isSubEntity) {
             // Guardar a estrutura da sub-entidade de volta no seu campo pai
             const parentContext = modalNavigationStack[modalNavigationStack.length - 1];
-            await saveSubEntityStructure(parentContext.moduleId, parentContext.entityId, context.parentFieldId, attributes);
+            console.log("Salvando sub-entidade para:", parentContext);
+            
+            // Passa o workspaceId para a função de salvamento da sub-entidade
+            await saveSubEntityStructure(
+                parentContext.moduleId, 
+                parentContext.entityId, 
+                context.parentFieldId, 
+                attributes,
+                workspaceId
+            );
             
             hideLoading();
             showSuccess('Guardado!', 'A estrutura da sub-entidade foi guardada com sucesso.');
         } else {
             // Guardar a estrutura da entidade principal
-            const currentWorkspace = getCurrentWorkspace();
-            await saveEntityStructure(context.moduleId, context.entityId, context.entityName, attributes, currentWorkspace ? currentWorkspace.id : 'default');
+            console.log("Salvando entidade principal:", {
+                moduleId: context.moduleId,
+                entityId: context.entityId,
+                entityName: context.entityName,
+                attributesCount: attributes.length,
+                workspaceId
+            });
+            
+            await saveEntityStructure(
+                context.moduleId, 
+                context.entityId, 
+                context.entityName, 
+                attributes, 
+                workspaceId
+            );
             
             hideLoading();
             showSuccess('Guardado!', `A estrutura da entidade "${context.entityName}" foi guardada com sucesso.`);
         }
     } catch (error) {
         hideLoading();
+        console.error("Erro ao salvar estrutura:", error);
         showError('Erro', 'Ocorreu um erro ao guardar a estrutura. Tente novamente.');
     }
 }
@@ -1539,6 +1602,14 @@ async function loadWorkspaceData(workspace) {
         
         // Verifica os estados vazios
         checkEmptyStates();
+        
+        // Força a renderização dos ícones para garantir que eles apareçam
+        if (window.lucide) {
+            setTimeout(() => {
+                console.log("Forçando renderização de ícones após carregamento de workspace");
+                lucide.createIcons();
+            }, 200);
+        }
         
         hideLoading();
     } catch (error) {

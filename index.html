@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
     <script>
-        // Configuração para garantir que os ícones Lucide sejam registrados corretamente
+        // Configuração aprimorada para garantir que os ícones Lucide sejam registrados corretamente
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) {
                 // Inicialização única do Lucide para evitar loops infinitos
@@ -25,6 +25,7 @@
                     
                     try {
                         lucide.createIcons();
+                        console.log('Ícones Lucide atualizados com sucesso');
                     } catch (error) {
                         console.warn('Erro ao atualizar ícones:', error);
                     } finally {
@@ -35,20 +36,41 @@
                 // Inicialização inicial
                 updateLucideIcons();
                 
+                // Garantir que os ícones sejam criados após o carregamento completo
+                window.addEventListener('load', function() {
+                    setTimeout(updateLucideIcons, 300);
+                });
+                
                 // Observador otimizado com debounce
                 let timeout;
                 const observer = new MutationObserver(function(mutations) {
                     clearTimeout(timeout);
                     timeout = setTimeout(() => {
-                        const hasNewNodes = mutations.some(mutation => 
-                            mutation.addedNodes && 
-                            Array.from(mutation.addedNodes).some(node => 
-                                node.nodeType === 1 && 
-                                (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))
-                            )
-                        );
+                        let hasNewNodes = false;
+                        
+                        // Verificar mutações para novos nós com data-lucide
+                        for (const mutation of mutations) {
+                            if (mutation.addedNodes && mutation.addedNodes.length) {
+                                for (const node of mutation.addedNodes) {
+                                    if (node.nodeType === 1) {  // É um elemento
+                                        if (node.hasAttribute && node.hasAttribute('data-lucide')) {
+                                            hasNewNodes = true;
+                                            break;
+                                        }
+                                        
+                                        // Verifica filhos
+                                        if (node.querySelector && node.querySelector('[data-lucide]')) {
+                                            hasNewNodes = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (hasNewNodes) break;
+                            }
+                        }
                         
                         if (hasNewNodes) {
+                            console.log('Novos nós com data-lucide detectados, atualizando ícones');
                             updateLucideIcons();
                         }
                     }, 100);
@@ -58,6 +80,9 @@
                     childList: true,
                     subtree: true
                 });
+                
+                // Expõe uma função global para atualizar ícones
+                window.updateLucideIcons = updateLucideIcons;
             }
         });
     </script>
@@ -71,7 +96,7 @@
 
     <!-- Link para o ficheiro CSS externo -->
     <link rel="stylesheet" href="css/style.css">
-<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
 <body class="text-slate-800 bg-slate-50">
 
     <!-- Indicador de Carregamento Visual -->
