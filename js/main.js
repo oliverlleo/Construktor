@@ -8,8 +8,7 @@ import { initAutenticacao, isUsuarioLogado, getUsuarioId } from './autenticacao.
 import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitiesIntoModules, 
          loadStructureForEntity, createEntity, createModule, saveEntityToModule, deleteEntityFromModule,
          deleteEntity, deleteModule, saveEntityStructure, saveSubEntityStructure, saveModulesOrder } from './database.js';
-import { initUI, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, 
-         showError, showConfirmDialog, showInputDialog } from './ui.js';
+import { initUI, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
 import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
@@ -217,14 +216,9 @@ function renderEntityInLibrary(entity) {
 
             // A nova lógica para fechar a sidebar:
             onStart: function (evt) {
-                // Verifica se a tela é mobile (usando o breakpoint do TailwindCSS sm: 640px)
+                // Verifica se a tela é mobile
                 if (window.innerWidth < 640) {
-                    const sidebar = document.getElementById('desktop-sidebar');
-                    if (sidebar) {
-                        // Fecha a sidebar usando as classes de CSS existentes
-                        sidebar.classList.remove('translate-x-0');
-                        sidebar.classList.add('-translate-x-full');
-                    }
+                    closeMobileSidebar(); // Apenas chame a função centralizada
                 }
             },
         });

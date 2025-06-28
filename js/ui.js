@@ -14,7 +14,9 @@ let isLoading = false;
 /**
  * Inicializa elementos e comportamentos da interface do usuário
  */
-export function initUI() {
+export { initUI, openMobileSidebar, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog };
+
+function initUI() {
     // Font Awesome já é inicializado automaticamente
     
     setupMobileInteractions();
@@ -23,10 +25,34 @@ export function initUI() {
 }
 
 /**
+ * Abre a sidebar em dispositivos móveis.
+ */
+function openMobileSidebar() {
+    const sidebar = document.getElementById('desktop-sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        mobileSidebarOpen = true; // Atualiza a variável de estado
+    }
+}
+
+/**
+ * Fecha a sidebar em dispositivos móveis.
+ */
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('desktop-sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+        mobileSidebarOpen = false; // Atualiza a variável de estado
+    }
+}
+
+/**
  * Função para inicializar ícones
  * Agora também inicializa os ícones Lucide, quando disponíveis
  */
-export function createIcons() {
+function createIcons() {
     // Font Awesome é inicializado automaticamente
     
     // Também inicializa ícones Lucide, se disponíveis
@@ -43,31 +69,24 @@ export function createIcons() {
 /**
  * Configura interações específicas para dispositivos móveis
  */
-export function setupMobileInteractions() {
+function setupMobileInteractions() {
     // Toggle menu mobile
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const desktopSidebar = document.getElementById('desktop-sidebar');
     const closeMobileMenu = document.getElementById('close-mobile-menu');
     
-    if (mobileMenuToggle && desktopSidebar) {
-        mobileMenuToggle.addEventListener('click', () => {
-            desktopSidebar.classList.add('open');
-            mobileSidebarOpen = true;
-        });
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', openMobileSidebar);
     }
     
-    if (closeMobileMenu && desktopSidebar) {
-        closeMobileMenu.addEventListener('click', () => {
-            desktopSidebar.classList.remove('open');
-            mobileSidebarOpen = false;
-        });
+    if (closeMobileMenu) {
+        closeMobileMenu.addEventListener('click', closeMobileSidebar);
     }
     
     // Fechar menu ao clicar fora (overlay)
     document.addEventListener('click', (e) => {
-        if (mobileSidebarOpen && desktopSidebar && !desktopSidebar.contains(e.target) && e.target !== mobileMenuToggle) {
-            desktopSidebar.classList.remove('open');
-            mobileSidebarOpen = false;
+        const sidebar = document.getElementById('desktop-sidebar');
+        if (mobileSidebarOpen && sidebar && !sidebar.contains(e.target) && !e.target.closest('#mobile-menu-toggle')) {
+            closeMobileSidebar();
         }
     });
     
