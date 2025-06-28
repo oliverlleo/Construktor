@@ -13,6 +13,125 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
     <script>
+        // Funções para controle do menu mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            let longPressTimer = null;
+            let isDragging = false;
+            
+            // Menu mobile toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                });
+            }
+            
+            // Fechar menu mobile
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', function() {
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                });
+            }
+            
+            // Modificar comportamento do botão + no mobile
+            const mobileAddModuleBtn = document.getElementById('mobile-add-module-btn');
+            if (mobileAddModuleBtn) {
+                mobileAddModuleBtn.addEventListener('click', function(e) {
+                    if (window.innerWidth < 640) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const sidebar = document.getElementById('desktop-sidebar');
+                        sidebar.classList.remove('-translate-x-full');
+                        sidebar.classList.add('translate-x-0');
+                        return false;
+                    }
+                }, true);
+            }
+            
+            // Funcionalidade de pressionar por 2 segundos para arrastar entidades
+            document.addEventListener('touchstart', function(e) {
+                if (window.innerWidth >= 640) return;
+                
+                const entityCard = e.target.closest('.entity-card');
+                if (!entityCard) return;
+                
+                e.preventDefault();
+                longPressTimer = setTimeout(() => {
+                    // Adiciona classe de flutuação
+                    entityCard.classList.add('floating-drag');
+                    entityCard.style.position = 'fixed';
+                    entityCard.style.zIndex = '1000';
+                    entityCard.style.pointerEvents = 'none';
+                    entityCard.style.opacity = '0.8';
+                    entityCard.style.transform = 'scale(1.1)';
+                    entityCard.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                    
+                    // Fecha COMPLETAMENTE a barra lateral (como se clicasse no X)
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                    
+                    isDragging = true;
+                    
+                    // Vibração no dispositivo se disponível
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                }, 1500); // 1.5 segundos
+            }, { passive: false });
+            
+            document.addEventListener('touchend', function(e) {
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                
+                if (isDragging) {
+                    const entityCard = document.querySelector('.floating-drag');
+                    if (entityCard) {
+                        entityCard.classList.remove('floating-drag');
+                        entityCard.style.position = '';
+                        entityCard.style.zIndex = '';
+                        entityCard.style.pointerEvents = '';
+                        entityCard.style.opacity = '';
+                        entityCard.style.transform = '';
+                        entityCard.style.boxShadow = '';
+                    }
+                    isDragging = false;
+                }
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const entityCard = document.querySelector('.floating-drag');
+                    if (entityCard) {
+                        entityCard.style.left = (touch.clientX - entityCard.offsetWidth / 2) + 'px';
+                        entityCard.style.top = (touch.clientY - entityCard.offsetHeight / 2) + 'px';
+                    }
+                }
+            }, { passive: false });
+            
+            // Adicionar evento para fechar sidebar quando clicar em uma entidade em mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth >= 640) return;
+                
+                const entityCard = e.target.closest('.entity-card');
+                if (entityCard) {
+                    // Fecha a barra lateral completamente
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+        });
+        
         // Configuração aprimorada para garantir que os ícones Lucide sejam registrados corretamente
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) {
@@ -100,7 +219,7 @@
 
     <!-- Link para o ficheiro CSS externo -->
     <link rel="stylesheet" href="css/style.css">
-</head>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
 <body class="text-slate-800 bg-slate-50">
 
     <!-- Indicador de Carregamento Visual -->
@@ -160,11 +279,13 @@
                     <i class="fa-solid fa-circle-question h-5 w-5"></i>
                     <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
                 </button>
-                <a href="/pages/code-view.html" target="_blank" class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md flex items-center gap-2 text-sm sm:text-base">
+                <!-- Botão Ver Código apenas visível em desktop -->
+                <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
                     <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
                     <span class="font-medium">Ver Código</span>
                 </a>
-                <a href="/pages/user-view.html" target="_blank" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center gap-2 text-sm sm:text-base">
+                <!-- Botão Ver Página apenas visível em desktop -->
+                <a href="pages/user-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
                     <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
                     <span class="font-medium">Ver Página</span>
                 </a>
@@ -214,6 +335,16 @@
                         <div id="current-workspace-title" class="mt-1 text-xs text-slate-500 truncate">Minha Área de Trabalho</div>
                     </div>
 
+                    <!-- Botões de ação mobile -->
+                    <div class="p-4 border-b border-slate-200 sm:hidden">
+                        <div class="flex flex-col gap-2">
+                            <a href="pages/user-view.html" target="_blank" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-eye h-4 w-4"></i>
+                                <span class="font-medium">Ver Página</span>
+                            </a>
+                        </div>
+                    </div>
+
                     <div id="entity-library">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-md font-semibold text-slate-700 flex items-center gap-1">
@@ -233,12 +364,17 @@
                     <!-- Seção de Recursos Compartilhados -->
                     <div id="shared-resources" class="mt-5 pt-5 border-t border-slate-200">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-md font-semibold text-slate-700 flex items-center gap-1">
-                                <i class="fa-solid fa-share-nodes h-4 w-4 text-emerald-500"></i> Compartilhados Comigo
+                            <h3 class="text-sm sm:text-md font-semibold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-share-nodes h-4 w-4 text-emerald-500"></i> 
+                                <span class="hidden sm:inline">Compartilhados Comigo</span>
+                                <span class="sm:hidden">Compartilhados</span>
                             </h3>
-                            <button id="refresh-shared-resources" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full hover:bg-emerald-100 transition-all">
-                                <i class="fa-solid fa-arrows-rotate h-3 w-3 inline-block mr-1"></i>Atualizar
-                            </button>
+                            <div>
+                                <button id="refresh-shared-resources" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full hover:bg-emerald-100 transition-all">
+                                    <i class="fa-solid fa-arrows-rotate h-3 w-3 inline-block mr-1"></i>
+                                    <span class="hidden sm:inline">Atualizar</span>
+                                </button>
+                            </div>
                         </div>
                         
                         <div id="shared-resources-list" class="space-y-2.5">
@@ -247,7 +383,7 @@
                         
                         <div id="no-shared-resources" class="bg-slate-50 rounded-lg p-3 text-center text-slate-500 border border-slate-200">
                             <i class="fa-solid fa-circle-info h-5 w-5 mx-auto mb-2 text-slate-400"></i>
-                            <p class="text-sm">Nenhum recurso compartilhado encontrado</p>
+                            <p class="text-xs sm:text-sm">Nenhum recurso compartilhado encontrado</p>
                         </div>
                     </div>
 
@@ -342,10 +478,10 @@
             </section>
         </main>
 
-        <!-- Botão flutuante para adicionar módulo (visível apenas em mobile) -->
+        <!-- Botão flutuante para abrir entidades no mobile / adicionar módulo no desktop -->
         <div class="fixed right-4 bottom-4 sm:hidden z-20">
             <button id="mobile-add-module-btn" class="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center">
-                <i class="fa-solid fa-plus h-6 w-6"></i>
+                <i class="fa-solid fa-box-archive h-6 w-6"></i>
             </button>
         </div>
     </div>

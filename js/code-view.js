@@ -1,25 +1,26 @@
 // Estrutura de arquivos e diretórios do sistema - VERSÃO ATUALIZADA
 const fileStructure = {
     // Arquivos principais
-    'index.html': { path: '/index.html', type: 'html' },
-    'css/style.css': { path: '/css/style.css', type: 'css' },
-    'js/config.js': { path: '/js/config.js', type: 'javascript' },
-    'js/autenticacao.js': { path: '/js/autenticacao.js', type: 'javascript' },
-    'js/database.js': { path: '/js/database.js', type: 'javascript' },
-    'js/ui.js': { path: '/js/ui.js', type: 'javascript' },
-    'js/main.js': { path: '/js/main.js', type: 'javascript' },
-    'js/workspaces.js': { path: '/js/workspaces.js', type: 'javascript' },
-    'js/login.js': { path: '/js/login.js', type: 'javascript' },
-    'js/code-view.js': { path: '/js/code-view.js', type: 'javascript' },
-    'js/user/userProfile.js': { path: '/js/user/userProfile.js', type: 'javascript' },
-    'js/user/invitations.js': { path: '/js/user/invitations.js', type: 'javascript' },
-    'pages/login.html': { path: '/pages/login.html', type: 'html' },
-    'pages/code-view.html': { path: '/pages/code-view.html', type: 'html' },
+    'index.html': { path: '../index.html', type: 'html' },
+    'css/style.css': { path: '../css/style.css', type: 'css' },
+    'js/config.js': { path: '../js/config.js', type: 'javascript' },
+    'js/autenticacao.js': { path: '../js/autenticacao.js', type: 'javascript' },
+    'js/database.js': { path: '../js/database.js', type: 'javascript' },
+    'js/ui.js': { path: '../js/ui.js', type: 'javascript' },
+    'js/main.js': { path: '../js/main.js', type: 'javascript' },
+    'js/workspaces.js': { path: '../js/workspaces.js', type: 'javascript' },
+    'js/login.js': { path: '../js/login.js', type: 'javascript' },
+    'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
+    'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },
+    'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'javascript' },
+    'pages/login.html': { path: '../pages/login.html', type: 'html' },
+    'pages/code-view.html': { path: 'code-view.html', type: 'html' },
+    'pages/user-view.html': { path: '../pages/user-view.html', type: 'html' },
     
     // Arquivos de documentação e configuração
-    'YOUWARE.md': { path: '/YOUWARE.md', type: 'markdown' },
-    'firebase_rules.json': { path: '/firebase_rules.json', type: 'json' },
-    'database-rules-guide.md': { path: '/database-rules-guide.md', type: 'markdown' }
+    'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' },
+    'firebase_rules.json': { path: '../firebase_rules.json', type: 'json' },
+    'database-rules-guide.md': { path: '../database-rules-guide.md', type: 'markdown' }
 };
 
 // Código fonte dos arquivos
