@@ -82,7 +82,7 @@
                     if (navigator.vibrate) {
                         navigator.vibrate(50);
                     }
-                }, 1500); // 1.5 segundos
+                }, 300); // 0.3 segundos
             }, { passive: false });
             
             document.addEventListener('touchend', function(e) {
@@ -122,13 +122,14 @@
             document.addEventListener('click', function(e) {
                 if (window.innerWidth >= 640) return;
                 
-                const entityCard = e.target.closest('.entity-card');
-                if (entityCard) {
-                    // Fecha a barra lateral completamente
-                    const sidebar = document.getElementById('desktop-sidebar');
-                    sidebar.classList.remove('translate-x-0');
-                    sidebar.classList.add('-translate-x-full');
-                }
+                // O bloco if abaixo foi removido para evitar o fechamento da sidebar ao clicar em uma entidade.
+                // const entityCard = e.target.closest('.entity-card');
+                // if (entityCard) {
+                //     // Fecha a barra lateral completamente
+                //     const sidebar = document.getElementById('desktop-sidebar');
+                //     sidebar.classList.remove('translate-x-0');
+                //     sidebar.classList.add('-translate-x-full');
+                // }
             });
         });
         
