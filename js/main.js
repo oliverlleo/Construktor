@@ -880,9 +880,9 @@ async function handleAddNewEntity() {
         const { value: formValues, isConfirmed } = await Swal.fire({
             title: 'Criar Nova Entidade',
             html: `
-                <div>
+                <div class="mb-4">
                     <label for="swal-input-name" class="block text-sm font-medium text-slate-700 mb-1 text-left">Nome da Entidade</label>
-                    <input id="swal-input-name" class="swal2-input w-full px-3 py-2 border-[0.5px] border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ex: Fornecedor, Produto, Funcionário...">
+                    <input id="swal-input-name" class="swal2-input w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ex: Fornecedor, Produto, Funcionário...">
                 </div>
                 <div>
                     <p class="text-sm font-medium text-slate-700 mb-2 text-left">Escolha um ícone:</p>
