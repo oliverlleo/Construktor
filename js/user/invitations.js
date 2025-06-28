@@ -6,7 +6,6 @@
 import { getUsuarioAtual, getUsuarioId, getUsuarioNome, getUsuarioEmail } from '../autenticacao.js';
 import { showSuccess, showError, showLoading, hideLoading } from '../ui.js';
 import { getUserProfileData } from './userProfile.js';
-import { loadSharedResources } from '../database.js';
 
 // Variáveis do módulo
 let db;
@@ -108,7 +107,6 @@ function setupManageInvitesModal() {
     // Alternar entre as abas
     tabInvitesSent.addEventListener('click', () => {
         if (activeTab === 'sent') return;
-        
         activeTab = 'sent';
         updateInvitesTabUI();
         loadInvites('sent');
@@ -116,7 +114,6 @@ function setupManageInvitesModal() {
     
     tabInvitesReceived.addEventListener('click', () => {
         if (activeTab === 'received') return;
-        
         activeTab = 'received';
         updateInvitesTabUI();
         loadInvites('received');
@@ -124,7 +121,6 @@ function setupManageInvitesModal() {
     
     tabInvitesAccess.addEventListener('click', () => {
         if (activeTab === 'access') return;
-        
         activeTab = 'access';
         updateInvitesTabUI();
         loadSharedAccess();
@@ -132,72 +128,31 @@ function setupManageInvitesModal() {
     
     // Delegação de eventos para os convites e acessos
     manageInvitesModal.addEventListener('click', async (event) => {
-        // Cancelar convite enviado
-        const cancelBtn = event.target.closest('.cancel-invite-btn');
-        if (cancelBtn) {
-            const inviteCard = cancelBtn.closest('.invite-card');
-            const inviteId = inviteCard.dataset.inviteId;
-            await manageInvite(inviteId, 'cancel');
-            return;
-        }
+        const target = event.target;
+        const card = target.closest('.invite-card, .shared-access-item');
+        if (!card) return;
+
+        const inviteId = card.dataset.inviteId;
+
+        if (target.closest('.cancel-invite-btn')) await manageInvite(inviteId, 'cancel');
+        if (target.closest('.accept-invite-btn')) await manageInvite(inviteId, 'accept');
+        if (target.closest('.decline-invite-btn')) await manageInvite(inviteId, 'decline');
         
-        // Aceitar convite recebido
-        const acceptBtn = event.target.closest('.accept-invite-btn');
-        if (acceptBtn) {
-            const inviteCard = acceptBtn.closest('.invite-card');
-            const inviteId = inviteCard.dataset.inviteId;
-            await manageInvite(inviteId, 'accept');
-            return;
+        if (target.closest('.save-permission-btn')) {
+            const newRole = card.querySelector('.permission-select').value;
+            await updateUserPermission(inviteId, newRole);
+            target.closest('.save-permission-btn').classList.add('hidden');
         }
-        
-        // Recusar convite recebido
-        const declineBtn = event.target.closest('.decline-invite-btn');
-        if (declineBtn) {
-            const inviteCard = declineBtn.closest('.invite-card');
-            const inviteId = inviteCard.dataset.inviteId;
-            await manageInvite(inviteId, 'decline');
-            return;
-        }
-        
-        // Salvar alteração de permissão
-        const savePermissionBtn = event.target.closest('.save-permission-btn');
-        if (savePermissionBtn) {
-            const accessItem = savePermissionBtn.closest('.shared-access-item');
-            const inviteId = accessItem.dataset.inviteId;
-            const permissionSelect = accessItem.querySelector('.permission-select');
-            const newRole = permissionSelect.value;
-            
-            if (inviteId && newRole) {
-                await updateUserPermission(inviteId, newRole);
-                savePermissionBtn.classList.add('hidden');
-            }
-            return;
-        }
-        
-        // Remover acesso de usuário
-        const removeAccessBtn = event.target.closest('.remove-access-btn');
-        if (removeAccessBtn) {
-            const accessItem = removeAccessBtn.closest('.shared-access-item');
-            const inviteId = accessItem.dataset.inviteId;
-            const email = accessItem.dataset.email;
-            
-            if (inviteId && email) {
-                const confirmRemove = await Swal.fire({
-                    title: 'Remover acesso',
-                    text: `Tem certeza que deseja remover o acesso de ${email}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sim, remover',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6'
-                });
-                
-                if (confirmRemove.isConfirmed) {
-                    await manageInvite(inviteId, 'revoke');
-                }
-            }
-            return;
+
+        if (target.closest('.remove-access-btn')) {
+            const email = card.dataset.email;
+            const confirmRemove = await Swal.fire({
+                title: 'Remover acesso?',
+                text: `Tem a certeza que deseja remover o acesso de ${email}?`,
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'Sim, remover',
+                cancelButtonText: 'Cancelar', confirmButtonColor: '#d33'
+            });
+            if (confirmRemove.isConfirmed) await manageInvite(inviteId, 'revoke');
         }
     });
 }
@@ -206,46 +161,33 @@ function setupManageInvitesModal() {
  * Atualiza a UI das abas de convites
  */
 function updateInvitesTabUI() {
-    const tabSent = document.getElementById('tab-invites-sent');
-    const tabReceived = document.getElementById('tab-invites-received');
-    const tabAccess = document.getElementById('tab-invites-access');
-    const sentContainer = document.getElementById('sent-invites-container');
-    const receivedContainer = document.getElementById('received-invites-container');
-    const accessContainer = document.getElementById('access-management-container');
+    const tabs = {
+        sent: document.getElementById('tab-invites-sent'),
+        received: document.getElementById('tab-invites-received'),
+        access: document.getElementById('tab-invites-access')
+    };
+    const containers = {
+        sent: document.getElementById('sent-invites-container'),
+        received: document.getElementById('received-invites-container'),
+        access: document.getElementById('access-management-container')
+    };
     
-    // Primeiro, resetamos todos os estilos e ocultamos todos os containers
-    [tabSent, tabReceived, tabAccess].forEach(tab => {
-        tab.classList.remove('border-indigo-600', 'text-indigo-600');
-        tab.classList.add('border-slate-200', 'text-slate-500');
-    });
-    
-    [sentContainer, receivedContainer, accessContainer].forEach(container => {
-        container.classList.add('hidden');
-    });
-    
-    // Depois, configuramos a aba ativa
-    if (activeTab === 'sent') {
-        tabSent.classList.remove('border-slate-200', 'text-slate-500');
-        tabSent.classList.add('border-indigo-600', 'text-indigo-600');
-        sentContainer.classList.remove('hidden');
-    } else if (activeTab === 'received') {
-        tabReceived.classList.remove('border-slate-200', 'text-slate-500');
-        tabReceived.classList.add('border-indigo-600', 'text-indigo-600');
-        receivedContainer.classList.remove('hidden');
-    } else if (activeTab === 'access') {
-        tabAccess.classList.remove('border-slate-200', 'text-slate-500');
-        tabAccess.classList.add('border-indigo-600', 'text-indigo-600');
-        accessContainer.classList.remove('hidden');
+    for (const key in tabs) {
+        const isTabActive = key === activeTab;
+        tabs[key].classList.toggle('border-indigo-600', isTabActive);
+        tabs[key].classList.toggle('text-indigo-600', isTabActive);
+        tabs[key].classList.toggle('border-slate-200', !isTabActive);
+        tabs[key].classList.toggle('text-slate-500', !isTabActive);
+        containers[key].classList.toggle('hidden', !isTabActive);
     }
     
-    // Atualiza os ícones para garantir que eles sejam renderizados corretamente
     if (window.lucide) {
         window.lucide.createIcons();
     }
 }
 
 /**
- * Envia um convite para outro usuário criando o registro diretamente no banco de dados.
+ * Envia um convite para outro usuário.
  */
 async function sendInvite() {
     const emailInput = document.getElementById('invite-email-input');
@@ -269,26 +211,21 @@ async function sendInvite() {
     try {
         const currentUserProfile = await getUserProfileData();
         const senderName = currentUserProfile.displayName || getUsuarioNome() || "Usuário Anônimo";
-
-        // Cria a referência para o novo convite no banco de dados
         const newInviteRef = db.ref('invitations').push();
-
-        // Monta o objeto do convite
         const inviteData = {
             fromUserId: getUsuarioId(),
             fromUserName: senderName,
             toEmail: email,
+            toUserId: null, // Será preenchido quando o convite for aceite
             resourceType: 'workspace',
             resourceId: currentWorkspace.id,
             resourceName: currentWorkspace.name,
             role: permission,
-            status: 'pending', // A regra de segurança exige que o status inicial seja 'pending'
+            status: 'pending',
             createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        // Salva o convite diretamente no banco de dados
         await newInviteRef.set(inviteData);
-
         document.getElementById('invite-modal').classList.add('hidden');
         hideLoading();
         showSuccess('Convite enviado', `Um convite foi enviado para ${email}.`);
@@ -297,9 +234,9 @@ async function sendInvite() {
         }
 
     } catch (error) {
-        console.error('Erro ao enviar convite diretamente:', error);
+        console.error('Erro ao enviar convite:', error);
         hideLoading();
-        showError('Erro no Envio', 'Ocorreu um erro ao criar o convite. Verifique suas regras de segurança.');
+        showError('Erro no Envio', 'Ocorreu um erro ao criar o convite.');
     }
 }
 
@@ -310,127 +247,88 @@ async function sendInvite() {
  */
 async function manageInvite(inviteId, action) {
     showLoading('Processando...');
-
     try {
         const inviteRef = db.ref(`invitations/${inviteId}`);
         const updates = {};
         
+        const inviteSnapshot = await inviteRef.once('value');
+        if (!inviteSnapshot.exists()) throw new Error("Convite não encontrado.");
+        const inviteData = inviteSnapshot.val();
+        
         if (action === 'accept') {
-            const inviteSnapshot = await inviteRef.once('value');
-            const inviteData = inviteSnapshot.val();
-
-            if (!inviteData) {
-                throw new Error("Convite não encontrado.");
-            }
-
-            // Atualiza o status do convite
+            const acceptedByUserId = getUsuarioId();
             updates[`invitations/${inviteId}/status`] = 'accepted';
             updates[`invitations/${inviteId}/acceptedAt`] = firebase.database.ServerValue.TIMESTAMP;
-
-            // **PASSO CRÍTICO:** Adiciona a permissão no accessControl para o usuário que aceitou
-            const acceptedByUserId = getUsuarioId();
+            updates[`invitations/${inviteId}/toUserId`] = acceptedByUserId; // **CORREÇÃO CRÍTICA**: Guarda o ID do utilizador que aceitou
             updates[`accessControl/${acceptedByUserId}/${inviteData.resourceId}`] = inviteData.role;
-
-        } else if (action === 'decline') {
-            updates[`invitations/${inviteId}/status`] = 'declined';
-        } else if (action === 'cancel') {
-            updates[`invitations/${inviteId}/status`] = 'canceled';
+            
+            if (inviteData.resourceType === 'workspace') {
+                updates[`sharedWorkspaces/${inviteData.resourceId}`] = {
+                    name: inviteData.resourceName,
+                    ownerId: inviteData.fromUserId,
+                    ownerName: inviteData.fromUserName
+                };
+            }
         } else if (action === 'revoke') {
-            const inviteSnapshot = await inviteRef.once('value');
-            const inviteData = inviteSnapshot.val();
-            const invitedUserSnapshot = await db.ref('users').orderByChild('email').equalTo(inviteData.toEmail).once('value');
-            
-            let invitedUserId = null;
-            invitedUserSnapshot.forEach(snapshot => {
-                invitedUserId = snapshot.key;
-            });
-            
+            const invitedUserId = inviteData.toUserId; // **CORREÇÃO CRÍTICA**: Usa o `toUserId` guardado
             if (invitedUserId) {
-                 updates[`accessControl/${invitedUserId}/${inviteData.resourceId}`] = null; // Remove a permissão
+                 updates[`accessControl/${invitedUserId}/${inviteData.resourceId}`] = null;
+            } else {
+                 console.warn("Não foi possível revogar o acesso: toUserId não encontrado no convite.");
             }
             updates[`invitations/${inviteId}/status`] = 'revoked';
-            updates[`invitations/${inviteId}/revokedAt`] = firebase.database.ServerValue.TIMESTAMP;
+        } else {
+            updates[`invitations/${inviteId}/status`] = action === 'decline' ? 'declined' : 'canceled';
         }
 
-        // Aplica todas as atualizações de uma só vez
         await db.ref().update(updates);
-
         hideLoading();
-        showSuccess('Sucesso!', `O convite foi processado.`);
+        showSuccess('Sucesso!', 'O convite foi processado.');
 
-        // Recarrega a lista apropriada
-        if (action === 'accept' || action === 'decline') {
-            loadInvites('received');
-            checkPendingInvitations();
-        } else if (action === 'cancel') {
-            loadInvites('sent');
-        } else if (action === 'revoke') {
-            loadSharedAccess();
-        }
+        // Recarrega a aba atual
+        if (activeTab === 'access') loadSharedAccess();
+        else loadInvites(activeTab);
+        
+        if (action === 'accept' || action === 'decline') checkPendingInvitations();
 
     } catch (error) {
         console.error(`Erro ao executar a ação '${action}':`, error);
         hideLoading();
-        showError('Erro', 'Ocorreu um erro ao processar o convite.');
+        showError('Erro', `Ocorreu um erro ao processar o convite: ${error.message}`);
     }
 }
 
 /**
- * Atualiza a permissão de um utilizador diretamente no banco de dados.
+ * Atualiza a permissão de um utilizador.
  * @param {string} inviteId - O ID do convite original aceite
  * @param {string} newRole - A nova permissão
  */
 async function updateUserPermission(inviteId, newRole) {
     showLoading('Atualizando permissão...');
     try {
-        // Primeiro, verifica se o usuário atual é o dono do convite
         const inviteSnapshot = await db.ref(`invitations/${inviteId}`).once('value');
-        if (!inviteSnapshot.exists()) {
-            throw new Error("Convite não encontrado");
-        }
+        if (!inviteSnapshot.exists()) throw new Error("Convite não encontrado");
         
         const inviteData = inviteSnapshot.val();
-        const currentUserId = getUsuarioId();
+        if (inviteData.fromUserId !== getUsuarioId()) throw new Error("Apenas o dono do convite pode alterar a permissão.");
+        if (inviteData.status !== 'accepted') throw new Error("Só é possível alterar permissões de convites já aceitos.");
         
-        if (inviteData.fromUserId !== currentUserId) {
-            throw new Error("Você não tem permissão para alterar este convite");
-        }
-        
-        // Garante que o convite está no estado "accepted"
-        if (inviteData.status !== 'accepted') {
-            throw new Error("Só é possível alterar permissões de convites aceitos");
-        }
-        
-        // Atualiza a permissão no convite (uma operação por vez)
-        await db.ref(`invitations/${inviteId}`).update({
-            role: newRole,
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Encontra o usuário convidado para atualizar o accessControl dele
-        let invitedUserId = null;
-        
-        // Busca o usuário pelo email do convite
-        const userSnapshot = await db.ref('users').orderByChild('email').equalTo(inviteData.toEmail).once('value');
-        userSnapshot.forEach(snapshot => {
-            invitedUserId = snapshot.key;
-        });
-        
-        if (!invitedUserId) {
-            throw new Error("Não foi possível encontrar o usuário para atualizar a permissão");
-        }
-        
-        // Atualiza o accessControl do usuário convidado com a nova permissão
-        await db.ref(`accessControl/${invitedUserId}/${inviteData.resourceId}`).set(newRole);
-        
+        const invitedUserId = inviteData.toUserId; // **CORREÇÃO CRÍTICA**: Usa o `toUserId` guardado
+        if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado. O convite pode não ter sido devidamente aceito.");
+
+        const updates = {};
+        updates[`invitations/${inviteId}/role`] = newRole;
+        updates[`accessControl/${invitedUserId}/${inviteData.resourceId}`] = newRole;
+
+        await db.ref().update(updates);
         hideLoading();
-        showSuccess('Permissão atualizada', 'A permissão do usuário foi alterada com sucesso.');
-        loadSharedAccess(); // Recarrega a lista de acessos
+        showSuccess('Permissão atualizada!');
+        loadSharedAccess();
         
     } catch (error) {
         console.error('Erro ao atualizar permissão:', error);
         hideLoading();
-        showError('Erro na Atualização', 'Não foi possível atualizar a permissão: ' + error.message);
+        showError('Erro na Atualização', error.message);
     }
 }
 
@@ -441,48 +339,30 @@ async function updateUserPermission(inviteId, newRole) {
 async function loadInvites(type) {
     const userId = getUsuarioId();
     const userEmail = getUsuarioEmail()?.toLowerCase();
+    if (!userId || !userEmail) return;
     
-    if (!userId || !userEmail) {
-        showError('Erro', 'Usuário não autenticado.');
-        return;
-    }
-    
-    showLoading(`Carregando convites ${type === 'sent' ? 'enviados' : 'recebidos'}...`);
+    showLoading(`Carregando convites...`);
     
     try {
-        let query;
-        
-        if (type === 'sent') {
-            // Busca convites enviados pelo usuário atual
-            query = db.ref('invitations').orderByChild('fromUserId').equalTo(userId);
-        } else {
-            // Busca convites recebidos pelo email do usuário atual
-            query = db.ref('invitations').orderByChild('toEmail').equalTo(userEmail);
-        }
+        const queryField = type === 'sent' ? 'fromUserId' : 'toEmail';
+        const queryValue = type === 'sent' ? userId : userEmail;
+        const query = db.ref('invitations').orderByChild(queryField).equalTo(queryValue);
         
         const snapshot = await query.once('value');
-        const invites = [];
-        
-        snapshot.forEach(childSnapshot => {
-            const invite = {
-                id: childSnapshot.key,
-                ...childSnapshot.val()
-            };
-            
-            // Filtra apenas convites recebidos com status 'pending'
-            if (type === 'received' && invite.status !== 'pending') {
-                return;
-            }
-            
-            invites.push(invite);
+        let invites = [];
+        snapshot.forEach(child => {
+            invites.push({ id: child.key, ...child.val() });
         });
+
+        if (type === 'received') {
+            invites = invites.filter(invite => invite.status === 'pending');
+        }
         
-        renderInvites(invites, type);
+        renderInvites(invites.sort((a,b) => b.createdAt - a.createdAt), type);
         hideLoading();
     } catch (error) {
-        console.error(`Erro ao carregar convites ${type}:`, error);
         hideLoading();
-        showError('Erro', `Ocorreu um erro ao carregar os convites ${type === 'sent' ? 'enviados' : 'recebidos'}.`);
+        showError('Erro', `Ocorreu um erro ao carregar os convites.`);
     }
 }
 
@@ -492,111 +372,45 @@ async function loadInvites(type) {
  * @param {string} type - Tipo de convites: 'sent' ou 'received'
  */
 function renderInvites(invites, type) {
-    const container = document.getElementById(`${type}-invites-list`);
-    const emptyContainer = document.getElementById(`no-${type}-invites`);
+    const containerId = `${type}-invites-list`;
+    const emptyId = `no-${type}-invites`;
+    const container = document.getElementById(containerId);
+    const emptyContainer = document.getElementById(emptyId);
     
     container.innerHTML = '';
-    
-    if (invites.length === 0) {
-        container.classList.add('hidden');
-        emptyContainer.classList.remove('hidden');
-        return;
-    }
-    
-    container.classList.remove('hidden');
-    emptyContainer.classList.add('hidden');
-    
-    invites.forEach(invite => {
-        if (type === 'sent') {
-            renderSentInvite(invite, container);
-        } else {
-            renderReceivedInvite(invite, container);
-        }
-    });
-    
-    // Atualiza os ícones
-    const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-    if (window.lucide && iconsToUpdate) {
-        lucide.createIcons({
-            icons: iconsToUpdate
+    container.classList.toggle('hidden', invites.length === 0);
+    emptyContainer.classList.toggle('hidden', invites.length > 0);
+
+    if(invites.length > 0) {
+        const templateId = type === 'sent' ? 'sent-invite-template' : 'received-invite-template';
+        const template = document.getElementById(templateId);
+        invites.forEach(invite => {
+            const clone = document.importNode(template.content, true);
+            const card = clone.querySelector('.invite-card');
+            card.dataset.inviteId = invite.id;
+
+            if (type === 'sent') {
+                card.querySelector('.invite-email').textContent = invite.toEmail;
+                const statusBadge = card.querySelector('.invite-status-badge');
+                const { badgeClass, statusText } = getStatusBadgeInfo(invite.status);
+                statusBadge.className = `inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`;
+                statusBadge.textContent = statusText;
+                card.querySelector('.cancel-invite-container').style.display = invite.status === 'pending' ? '' : 'none';
+            } else {
+                card.querySelector('.invite-sender').textContent = invite.fromUserName || 'Usuário';
+                card.querySelector('.invite-permission').textContent = formatPermission(invite.role);
+                 // Adiciona texto aos botões para melhorar a usabilidade
+                const acceptBtn = clone.querySelector('.accept-invite-btn');
+                const declineBtn = clone.querySelector('.decline-invite-btn');
+                
+                acceptBtn.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span class="text-sm font-medium">Aceitar</span>`;
+                declineBtn.innerHTML = `<i data-lucide="x" class="h-4 w-4"></i><span class="text-sm font-medium">Recusar</span>`;
+            }
+            card.querySelector('.invite-date').textContent = formatDate(invite.createdAt);
+            container.appendChild(clone);
         });
     }
-}
-
-/**
- * Renderiza um convite enviado
- * @param {Object} invite - Dados do convite
- * @param {HTMLElement} container - Elemento container onde o convite será renderizado
- */
-function renderSentInvite(invite, container) {
-    const template = document.getElementById('sent-invite-template');
-    const clone = document.importNode(template.content, true);
-    
-    const inviteCard = clone.querySelector('.invite-card');
-    inviteCard.dataset.inviteId = invite.id;
-    
-    const emailEl = clone.querySelector('.invite-email');
-    emailEl.textContent = invite.toEmail;
-    
-    const dateEl = clone.querySelector('.invite-date');
-    dateEl.textContent = formatDate(invite.createdAt);
-    
-    const statusBadge = clone.querySelector('.invite-status-badge');
-    const { badgeClass, statusText } = getStatusBadgeInfo(invite.status);
-    statusBadge.className = `inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`;
-    statusBadge.textContent = statusText;
-    
-    // O botão de cancelar só aparece se o status for 'pending'
-    const cancelContainer = clone.querySelector('.cancel-invite-container');
-    if (invite.status !== 'pending') {
-        cancelContainer.style.display = 'none';
-    }
-    
-    container.appendChild(clone);
-}
-
-/**
- * Renderiza um convite recebido
- * @param {Object} invite - Dados do convite
- * @param {HTMLElement} container - Elemento container onde o convite será renderizado
- */
-function renderReceivedInvite(invite, container) {
-    const template = document.getElementById('received-invite-template');
-    const clone = document.importNode(template.content, true);
-    
-    const inviteCard = clone.querySelector('.invite-card');
-    inviteCard.dataset.inviteId = invite.id;
-    
-    const senderEl = clone.querySelector('.invite-sender');
-    senderEl.textContent = invite.fromUserName || 'Usuário';
-    
-    const dateEl = clone.querySelector('.invite-date');
-    dateEl.textContent = formatDate(invite.createdAt);
-    
-    const permissionEl = clone.querySelector('.invite-permission');
-    permissionEl.textContent = formatPermission(invite.role);
-    
-    // Adiciona texto aos botões para melhorar a usabilidade
-    const acceptBtn = clone.querySelector('.accept-invite-btn');
-    const declineBtn = clone.querySelector('.decline-invite-btn');
-    
-    // Adiciona texto ao botão de aceitar e ajusta a aparência
-    acceptBtn.classList.remove('p-1');
-    acceptBtn.classList.add('px-3', 'py-1.5', 'flex', 'items-center', 'gap-1', 'rounded-md', 'bg-emerald-50');
-    acceptBtn.innerHTML = `
-        <i data-lucide="check" class="h-4 w-4"></i>
-        <span class="text-sm font-medium">Aceitar</span>
-    `;
-    
-    // Adiciona texto ao botão de recusar e ajusta a aparência
-    declineBtn.classList.remove('p-1');
-    declineBtn.classList.add('px-3', 'py-1.5', 'flex', 'items-center', 'gap-1', 'rounded-md', 'bg-slate-50');
-    declineBtn.innerHTML = `
-        <i data-lucide="x" class="h-4 w-4"></i>
-        <span class="text-sm font-medium">Recusar</span>
-    `;
-    
-    container.appendChild(clone);
+    if (window.lucide) window.lucide.createIcons();
 }
 
 /**
@@ -605,29 +419,16 @@ function renderReceivedInvite(invite, container) {
  */
 export async function checkPendingInvitations() {
     const userEmail = getUsuarioEmail()?.toLowerCase();
-    
-    if (!userEmail) {
-        return 0;
-    }
+    if (!userEmail) return 0;
     
     try {
-        const query = db.ref('invitations')
-                        .orderByChild('toEmail')
-                        .equalTo(userEmail);
-        
+        const query = db.ref('invitations').orderByChild('toEmail').equalTo(userEmail);
         const snapshot = await query.once('value');
         let pendingCount = 0;
-        
-        snapshot.forEach(childSnapshot => {
-            const invite = childSnapshot.val();
-            if (invite.status === 'pending') {
-                pendingCount++;
-            }
+        snapshot.forEach(child => {
+            if (child.val().status === 'pending') pendingCount++;
         });
-        
-        // Atualiza o badge de notificação na aba de convites recebidos
         updateReceivedInvitesBadge(pendingCount);
-        
         return pendingCount;
     } catch (error) {
         console.error('Erro ao verificar convites pendentes:', error);
@@ -640,27 +441,12 @@ export async function checkPendingInvitations() {
  * @param {number} count - Número de convites pendentes
  */
 function updateReceivedInvitesBadge(count) {
-    // Atualiza o badge na aba dentro do modal
-    const tabBadge = document.getElementById('received-invites-badge');
-    if (tabBadge) {
-        if (count > 0) {
-            tabBadge.textContent = count > 9 ? '9+' : count.toString();
-            tabBadge.classList.remove('hidden');
-        } else {
-            tabBadge.classList.add('hidden');
+    [document.getElementById('received-invites-badge'), document.getElementById('menu-invites-badge')].forEach(badge => {
+        if (badge) {
+            badge.classList.toggle('hidden', count === 0);
+            if (count > 0) badge.textContent = count > 9 ? '9+' : count.toString();
         }
-    }
-    
-    // Atualiza o badge no menu principal
-    const menuBadge = document.getElementById('menu-invites-badge');
-    if (menuBadge) {
-        if (count > 0) {
-            menuBadge.textContent = count > 9 ? '9+' : count.toString();
-            menuBadge.classList.remove('hidden');
-        } else {
-            menuBadge.classList.add('hidden');
-        }
-    }
+    });
 }
 
 /**
@@ -668,53 +454,27 @@ function updateReceivedInvitesBadge(count) {
  */
 async function loadSharedAccess() {
     const userId = getUsuarioId();
-    
-    if (!userId) {
-        showError('Erro', 'Usuário não autenticado.');
-        return;
-    }
+    if (!userId) return;
     
     showLoading('Carregando usuários com acesso...');
     
     try {
-        // Busca todos os convites enviados pelo usuário atual
-        const query = db.ref('invitations')
-            .orderByChild('fromUserId')
-            .equalTo(userId);
-        
+        const query = db.ref('invitations').orderByChild('fromUserId').equalTo(userId);
         const snapshot = await query.once('value');
         
-        if (!snapshot.exists()) {
-            // Não há convites enviados por este usuário
-            renderSharedAccess([]);
-            hideLoading();
-            return;
+        let sharedAccess = [];
+        if(snapshot.exists()){
+            snapshot.forEach(child => {
+                const invite = child.val();
+                if (invite.status === 'accepted') {
+                    sharedAccess.push({ id: child.key, ...invite });
+                }
+            });
         }
         
-        const sharedAccess = [];
-        
-        snapshot.forEach(childSnapshot => {
-            const invite = childSnapshot.val();
-            const inviteId = childSnapshot.key;
-            
-            // Considera apenas convites aceitos
-            if (invite.status === 'accepted' && invite.toEmail) {
-                sharedAccess.push({
-                    id: inviteId,
-                    email: invite.toEmail,
-                    resourceId: invite.resourceId,
-                    resourceType: invite.resourceType || 'workspace',
-                    role: invite.role,
-                    acceptedAt: invite.acceptedAt
-                });
-            }
-        });
-        
-        // Renderiza os usuários com acesso
-        renderSharedAccess(sharedAccess);
+        renderSharedAccess(sharedAccess.sort((a, b) => (b.acceptedAt || 0) - (a.acceptedAt || 0)));
         hideLoading();
     } catch (error) {
-        console.error('Erro ao carregar usuários com acesso:', error);
         hideLoading();
         showError('Erro', 'Ocorreu um erro ao carregar os usuários com acesso.');
     }
@@ -729,146 +489,62 @@ function renderSharedAccess(accessList) {
     const emptyContainer = document.getElementById('no-shared-access');
     
     container.innerHTML = '';
-    
-    if (accessList.length === 0) {
-        container.classList.add('hidden');
-        emptyContainer.classList.remove('hidden');
-        return;
-    }
-    
-    container.classList.remove('hidden');
-    emptyContainer.classList.add('hidden');
-    
-    // Ordena pela data de aceitação, mais recente primeiro
-    accessList.sort((a, b) => (b.acceptedAt || 0) - (a.acceptedAt || 0));
-    
-    accessList.forEach(access => {
-        renderSharedAccessItem(access, container);
-    });
-    
-    // Atualiza os ícones Lucide
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
-}
+    container.classList.toggle('hidden', accessList.length === 0);
+    emptyContainer.classList.toggle('hidden', accessList.length > 0);
 
-/**
- * Renderiza um item de acesso compartilhado
- * @param {Object} access - Dados do acesso
- * @param {HTMLElement} container - Container onde o item será renderizado
- */
-function renderSharedAccessItem(access, container) {
-    const template = document.getElementById('shared-access-template');
-    const clone = document.importNode(template.content, true);
-    
-    const accessItem = clone.querySelector('.shared-access-item');
-    accessItem.dataset.inviteId = access.id || '';
-    accessItem.dataset.email = access.email || '';
-    accessItem.dataset.resourceId = access.resourceId || '';
-    accessItem.dataset.role = access.role || '';
-    
-    const emailEl = clone.querySelector('.user-email');
-    emailEl.textContent = access.email || 'Email desconhecido';
-    
-    const permissionSelect = clone.querySelector('.permission-select');
-    permissionSelect.value = access.role || 'viewer';
-    
-    // Adiciona eventos para o dropdown de permissão
-    permissionSelect.addEventListener('change', function() {
-        const saveBtn = accessItem.querySelector('.save-permission-btn');
-        saveBtn.classList.remove('hidden');
-    });
-    
-    container.appendChild(clone);
+    if (accessList.length > 0) {
+        const template = document.getElementById('shared-access-template');
+        accessList.forEach(access => {
+            const clone = document.importNode(template.content, true);
+            const item = clone.querySelector('.shared-access-item');
+            item.dataset.inviteId = access.id;
+            item.dataset.email = access.toEmail;
+            
+            item.querySelector('.user-email').textContent = access.toEmail;
+            
+            const permissionSelect = item.querySelector('.permission-select');
+            permissionSelect.value = access.role;
+            permissionSelect.addEventListener('change', () => item.querySelector('.save-permission-btn').classList.remove('hidden'));
+            
+            container.appendChild(clone);
+        });
+    }
+    if (window.lucide) window.lucide.createIcons();
 }
 
 // Funções auxiliares
-
-/**
- * Retorna informações de estilo e texto para o badge de status
- * @param {string} status - Status do convite
- * @returns {Object} Objeto com classe CSS e texto do status
- */
 function getStatusBadgeInfo(status) {
-    switch (status) {
-        case 'pending':
-            return { 
-                badgeClass: 'bg-yellow-100 text-yellow-800', 
-                statusText: 'Pendente' 
-            };
-        case 'accepted':
-            return { 
-                badgeClass: 'bg-green-100 text-green-800', 
-                statusText: 'Aceito' 
-            };
-        case 'declined':
-            return { 
-                badgeClass: 'bg-red-100 text-red-800', 
-                statusText: 'Recusado' 
-            };
-        case 'canceled':
-            return { 
-                badgeClass: 'bg-slate-100 text-slate-800', 
-                statusText: 'Cancelado' 
-            };
-        case 'revoked':
-            return { 
-                badgeClass: 'bg-slate-100 text-slate-800', 
-                statusText: 'Revogado' 
-            };
-        default:
-            return { 
-                badgeClass: 'bg-slate-100 text-slate-800', 
-                statusText: 'Desconhecido' 
-            };
-    }
+    const statuses = {
+        pending: { badgeClass: 'bg-yellow-100 text-yellow-800', statusText: 'Pendente' },
+        accepted: { badgeClass: 'bg-green-100 text-green-800', statusText: 'Aceito' },
+        declined: { badgeClass: 'bg-red-100 text-red-800', statusText: 'Recusado' },
+        canceled: { badgeClass: 'bg-slate-100 text-slate-800', statusText: 'Cancelado' },
+        revoked: { badgeClass: 'bg-slate-100 text-slate-800', statusText: 'Revogado' }
+    };
+    return statuses[status] || { badgeClass: 'bg-slate-100 text-slate-800', statusText: 'Desconhecido' };
 }
 
-/**
- * Formata a permissão para exibição
- * @param {string} role - Papel/permissão do usuário
- * @returns {string} Permissão formatada
- */
 function formatPermission(role) {
-    switch (role) {
-        case 'admin':
-            return 'Administrador';
-        case 'editor':
-            return 'Editor';
-        case 'viewer':
-            return 'Leitor';
-        default:
-            return role || 'Desconhecido';
-    }
+    const roles = { admin: 'Administrador', editor: 'Editor', viewer: 'Leitor' };
+    return roles[role] || role;
 }
 
-/**
- * Formata uma data timestamp para exibição
- * @param {number} timestamp - Timestamp em milissegundos
- * @returns {string} Data formatada
- */
 function formatDate(timestamp) {
     if (!timestamp) return 'Data desconhecida';
-    
     const date = new Date(timestamp);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     
-    const isToday = date.toDateString() === today.toDateString();
-    const isYesterday = date.toDateString() === yesterday.toDateString();
-    
-    if (isToday) {
+    if (date.toDateString() === today.toDateString()) {
         return `Hoje, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (isYesterday) {
+    } else if (date.toDateString() === yesterday.toDateString()) {
         return `Ontem, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     } else {
         return date.toLocaleDateString('pt-BR', { 
             day: '2-digit', 
             month: '2-digit', 
-            year: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
         });
     }
 }
