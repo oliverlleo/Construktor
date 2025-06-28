@@ -2,6 +2,11 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f8fafc;
 }
+#workspace-select {
+  /* Esta é a regra que faltava: */
+  /* Força o select a poder encolher, ignorando a largura do seu conteúdo. */
+  min-width: 0;
+}
 
 /* Loading Animation */
 .loading-overlay {
