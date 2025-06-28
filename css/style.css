@@ -1,3 +1,4 @@
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f8fafc;
@@ -709,5 +710,10 @@ pre {
 @media (max-width: 640px) {
     .code-container {
         max-height: 400px;
+    }
+}
+@media (max-width: 640px) {
+    #entity-builder-modal {
+        padding: 0;
     }
 }
