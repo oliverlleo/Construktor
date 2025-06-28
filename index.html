@@ -53,83 +53,18 @@
                 }, true);
             }
             
-            // Funcionalidade de pressionar por 2 segundos para arrastar entidades
-            document.addEventListener('touchstart', function(e) {
-                if (window.innerWidth >= 640) return;
-                
-                const entityCard = e.target.closest('.entity-card');
-                if (!entityCard) return;
-                
-                e.preventDefault();
-                longPressTimer = setTimeout(() => {
-                    // Adiciona classe de flutuação
-                    entityCard.classList.add('floating-drag');
-                    entityCard.style.position = 'fixed';
-                    entityCard.style.zIndex = '1000';
-                    entityCard.style.pointerEvents = 'none';
-                    entityCard.style.opacity = '0.8';
-                    entityCard.style.transform = 'scale(1.1)';
-                    entityCard.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
-                    
-                    // Fecha COMPLETAMENTE a barra lateral (como se clicasse no X)
-                    const sidebar = document.getElementById('desktop-sidebar');
-                    sidebar.classList.remove('translate-x-0');
-                    sidebar.classList.add('-translate-x-full');
-                    
-                    isDragging = true;
-                    
-                    // Vibração no dispositivo se disponível
-                    if (navigator.vibrate) {
-                        navigator.vibrate(50);
-                    }
-                }, 300); // 0.3 segundos
-            }, { passive: false });
+            // O listener 'touchstart' foi removido daqui. A lógica de arrastar e fechar a sidebar
+            // será gerenciada por Sortable.js em js/main.js.
             
-            document.addEventListener('touchend', function(e) {
-                if (longPressTimer) {
-                    clearTimeout(longPressTimer);
-                    longPressTimer = null;
-                }
-                
-                if (isDragging) {
-                    const entityCard = document.querySelector('.floating-drag');
-                    if (entityCard) {
-                        entityCard.classList.remove('floating-drag');
-                        entityCard.style.position = '';
-                        entityCard.style.zIndex = '';
-                        entityCard.style.pointerEvents = '';
-                        entityCard.style.opacity = '';
-                        entityCard.style.transform = '';
-                        entityCard.style.boxShadow = '';
-                    }
-                    isDragging = false;
-                }
-            });
+            // O listener 'touchend' foi removido daqui.
             
-            document.addEventListener('touchmove', function(e) {
-                if (isDragging) {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const entityCard = document.querySelector('.floating-drag');
-                    if (entityCard) {
-                        entityCard.style.left = (touch.clientX - entityCard.offsetWidth / 2) + 'px';
-                        entityCard.style.top = (touch.clientY - entityCard.offsetHeight / 2) + 'px';
-                    }
-                }
-            }, { passive: false });
+            // O listener 'touchmove' foi removido daqui.
             
             // Adicionar evento para fechar sidebar quando clicar em uma entidade em mobile
             document.addEventListener('click', function(e) {
                 if (window.innerWidth >= 640) return;
                 
-                // O bloco if abaixo foi removido para evitar o fechamento da sidebar ao clicar em uma entidade.
-                // const entityCard = e.target.closest('.entity-card');
-                // if (entityCard) {
-                //     // Fecha a barra lateral completamente
-                //     const sidebar = document.getElementById('desktop-sidebar');
-                //     sidebar.classList.remove('translate-x-0');
-                //     sidebar.classList.add('-translate-x-full');
-                // }
+                // A lógica de clique conflitante que fechava a sidebar ao clicar em .entity-card foi removida.
             });
         });
         

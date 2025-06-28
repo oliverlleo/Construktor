@@ -205,15 +205,28 @@ function renderEntityInLibrary(entity) {
     }
     
     if (list && !list._sortable) {
-        list._sortable = new Sortable(list, { 
-            group: { name: 'entities', pull: 'clone', put: false }, 
-            sort: false, 
+        list._sortable = new Sortable(list, {
+            group: { name: 'entities', pull: 'clone', put: false },
+            sort: false,
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
-            delay: 50,
-            delayOnTouchOnly: true,
+            delay: 300, // Atraso de 300ms para iniciar o arraste (long-press)
+            delayOnTouchOnly: true, // Ativa o delay apenas para dispositivos de toque
+
+            // A nova lógica para fechar a sidebar:
+            onStart: function (evt) {
+                // Verifica se a tela é mobile (usando o breakpoint do TailwindCSS sm: 640px)
+                if (window.innerWidth < 640) {
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    if (sidebar) {
+                        // Fecha a sidebar usando as classes de CSS existentes
+                        sidebar.classList.remove('translate-x-0');
+                        sidebar.classList.add('-translate-x-full');
+                    }
+                }
+            },
         });
     }
 }
