@@ -711,4 +711,8 @@ pre {
         max-height: 400px;
     }
 }
-
+@media (max-width: 768px) {
+  #swal-input-name {
+    margin: 0;
+  }
+}
