@@ -8,8 +8,7 @@ import { initAutenticacao, isUsuarioLogado, getUsuarioId } from './autenticacao.
 import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitiesIntoModules, 
          loadStructureForEntity, createEntity, createModule, saveEntityToModule, deleteEntityFromModule,
          deleteEntity, deleteModule, saveEntityStructure, saveSubEntityStructure, saveModulesOrder } from './database.js';
-import { initUI, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, 
-         showError, showConfirmDialog, showInputDialog } from './ui.js';
+import { initUI, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
 import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
@@ -205,15 +204,23 @@ function renderEntityInLibrary(entity) {
     }
     
     if (list && !list._sortable) {
-        list._sortable = new Sortable(list, { 
-            group: { name: 'entities', pull: 'clone', put: false }, 
-            sort: false, 
+        list._sortable = new Sortable(list, {
+            group: { name: 'entities', pull: 'clone', put: false },
+            sort: false,
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
-            delay: 50,
-            delayOnTouchOnly: true,
+            delay: 300, // Atraso de 300ms para iniciar o arraste (long-press)
+            delayOnTouchOnly: true, // Ativa o delay apenas para dispositivos de toque
+
+            // A nova lógica para fechar a sidebar:
+            onStart: function (evt) {
+                // Verifica se a tela é mobile
+                if (window.innerWidth < 640) {
+                    closeMobileSidebar(); // Apenas chame a função centralizada
+                }
+            },
         });
     }
 }
