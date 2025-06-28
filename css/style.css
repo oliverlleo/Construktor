@@ -699,7 +699,9 @@ pre {
     background: #6366f1;
     border-radius: 2px;
 }
-
+#workspace-select option {
+    text-overflow: ellipsis;
+}
 @media (max-width: 640px) {
     .code-container {
         max-height: 400px;
