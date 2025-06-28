@@ -713,7 +713,7 @@ pre {
 }
 /* ===== OTIMIZAÇÕES PARA SWEETALERT2 EM MOBILE ===== */
 @media (max-width: 640px) {
-    .swal2-input {
+    .swal-input-name {
         /* Diminui o padding vertical e horizontal em telas pequenas */
         padding-top: 0.625rem;    /* Equivalente a py-2.5 */
         padding-bottom: 0.625rem; /* Equivalente a py-2.5 */
