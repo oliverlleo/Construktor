@@ -711,4 +711,9 @@ pre {
         max-height: 400px;
     }
 }
+#workspace-select {
+  /* Esta é a regra que faltava: */
+  /* Força o select a poder encolher, ignorando a largura do seu conteúdo. */
+  min-width: 0;
+}
 
