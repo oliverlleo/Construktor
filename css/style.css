@@ -711,21 +711,4 @@ pre {
         max-height: 400px;
     }
 }
-/* ===== OTIMIZAÇÕES PARA SWEETALERT2 EM MOBILE ===== */
-@media (max-width: 640px) {
-    .swal-input-name {
-        /* Diminui o padding vertical e horizontal em telas pequenas */
-        padding-top: 0.625rem;    /* Equivalente a py-2.5 */
-        padding-bottom: 0.625rem; /* Equivalente a py-2.5 */
-        padding-left: 0.75rem;    /* Equivalente a px-3 */
-        padding-right: 0.75rem;   /* Equivalente a px-3 */
 
-        /* Diminui o tamanho da fonte para melhor encaixe */
-        font-size: 0.95rem; 
-    }
-
-    /* Opcional: Ajusta o padding do modal inteiro para dar mais espaço */
-    .swal2-popup {
-        padding: 1rem !important;
-    }
-}
