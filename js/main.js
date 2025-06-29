@@ -220,6 +220,11 @@ function renderEntityInLibrary(entity) {
             delay: 300, // Atraso de 300ms para iniciar o arraste (long-press)
             delayOnTouchOnly: true, // Ativa o delay apenas para dispositivos de toque
 
+            // ---> INÍCIO DA ALTERAÇÃO <---
+            forceFallback: true,  // Garante que o clone do item seja sempre usado
+            fallbackOnBody: true, // Anexa o clone do item ao <body> da página
+            // ---> FIM DA ALTERAÇÃO <---
+
             // A nova lógica para fechar a sidebar:
             onStart: function (evt) {
                 // Verifica se a tela é mobile
