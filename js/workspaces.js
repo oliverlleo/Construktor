@@ -318,12 +318,6 @@ async function switchToWorkspace(workspace) {
       workspaceSelect.value = workspace.id;
     }
 
-    // Atualiza o título da área de trabalho
-    const workspaceTitle = document.getElementById("current-workspace-title");
-    if (workspaceTitle) {
-      workspaceTitle.textContent = workspace.name;
-    }
-
     // Mostra/esconde botão de compartilhamento baseado na propriedade
     const shareBtn = document.getElementById("share-workspace-btn");
     if (shareBtn) {
