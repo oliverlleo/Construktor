@@ -578,24 +578,20 @@ function updateSharedWorkspacesDisplay() {
 function renderSharedWorkspace(workspace, container) {
   const itemHtml = `
         <div class="shared-workspace-item bg-white rounded-lg border border-emerald-100 shadow-sm p-3 hover:shadow-md transition-shadow" 
-             data-workspace-id="${workspace.id}" data-owner-id="${
-    workspace.ownerId
-  }">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="h-8 w-8 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600">
+             data-workspace-id="${workspace.id}" data-owner-id="${workspace.ownerId}">
+            <div class="flex items-center justify-between gap-2">
+
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <div class="h-8 w-8 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
                         <i data-lucide="briefcase" class="h-5 w-5"></i>
                     </div>
-                    <div>
-                        <span class="font-medium text-slate-700 block text-sm">${
-                          workspace.name
-                        }</span>
-                        <span class="text-xs text-slate-500">Por ${
-                          workspace.ownerName
-                        } • ${formatRoleText(workspace.role)}</span>
+                    <div class="min-w-0">
+                        <span class="font-medium text-slate-700 block text-sm truncate">${workspace.name}</span>
+                        <span class="text-xs text-slate-500 block truncate">Por ${workspace.ownerName} • ${formatRoleText(workspace.role)}</span>
                     </div>
                 </div>
-                <button class="access-shared-workspace-btn bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors text-sm flex items-center gap-1">
+
+                <button class="access-shared-workspace-btn bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors text-sm flex items-center gap-1 flex-shrink-0">
                     <i data-lucide="log-in" class="h-4 w-4"></i>
                     <span>Acessar</span>
                 </button>
@@ -607,7 +603,6 @@ function renderSharedWorkspace(workspace, container) {
   tempDiv.innerHTML = itemHtml.trim();
   const item = tempDiv.firstChild;
 
-  // Adiciona evento de clique
   item
     .querySelector(".access-shared-workspace-btn")
     .addEventListener("click", () => {
@@ -616,7 +611,6 @@ function renderSharedWorkspace(workspace, container) {
 
   container.appendChild(item);
 
-  // Atualiza ícones
   if (window.lucide) {
     lucide.createIcons();
   }
