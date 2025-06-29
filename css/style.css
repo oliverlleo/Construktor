@@ -717,3 +717,8 @@ pre {
         padding: 0;
     }
 }
+@media (max-width: 640px) {
+    #swal-input-name {
+        border: none !important;
+    }
+}
