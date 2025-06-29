@@ -724,3 +724,10 @@ pre {
     width: calc(100% + 2.5rem);
   }
 }
+
+/* Regra para truncar texto */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
