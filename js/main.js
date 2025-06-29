@@ -11,7 +11,8 @@ import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitie
 import { initUI, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
-import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
+// No início do arquivo js/main.js
+import { initWorkspaces, getCurrentWorkspace, switchToWorkspace, getUserWorkspaces, getSharedWorkspaces } from './workspaces.js';
 
 // Variáveis globais
 let db;
@@ -63,31 +64,36 @@ async function initApp() {
             console.error('Erro ao verificar convites pendentes:', error);
         }
         
-        // Aguarda a inicialização das áreas de trabalho antes de carregar dados
-        await new Promise(resolve => {
-            const checkWorkspace = () => {
-                const currentWorkspace = getCurrentWorkspace();
-                if (currentWorkspace) {
-                    resolve();
-                } else {
-                    setTimeout(checkWorkspace, 100);
-                }
-            };
-            checkWorkspace();
-        });
-        
         // Configura listener para mudança de área de trabalho
         window.addEventListener('workspaceChanged', async (event) => {
             console.log("[workspaceChanged] Evento recebido. Carregando novo workspace.", event.detail.workspace);
             await loadWorkspaceData(event.detail.workspace);
         });
-        
-        // Carrega dados da área de trabalho atual
-        const currentWorkspace = getCurrentWorkspace();
-        if (currentWorkspace) {
-            console.log("[initApp] Carregando workspace inicial.", currentWorkspace);
-            await loadWorkspaceData(currentWorkspace);
+
+        // ---> INÍCIO DA ALTERAÇÃO <---
+        // Carrega o último workspace salvo ou o padrão
+        const savedWorkspaceInfo = localStorage.getItem('lastWorkspace');
+        let workspaceToLoad = getCurrentWorkspace(); // Pega o padrão primeiro
+
+        if (savedWorkspaceInfo) {
+            try {
+                const { id } = JSON.parse(savedWorkspaceInfo);
+                const allWorkspaces = [...getUserWorkspaces(), ...getSharedWorkspaces()];
+                const savedWorkspace = allWorkspaces.find(w => w.id === id);
+                if (savedWorkspace) {
+                    workspaceToLoad = savedWorkspace;
+                }
+            } catch (e) {
+                console.error("Erro ao carregar o último workspace:", e);
+                localStorage.removeItem('lastWorkspace');
+            }
         }
+
+        // Carrega os dados do workspace (o salvo ou o padrão)
+        if (workspaceToLoad) {
+            await switchToWorkspace(workspaceToLoad);
+        }
+        // ---> FIM DA ALTERAÇÃO <---
         
         // Configura os event listeners
         setupEventListeners();
@@ -213,6 +219,11 @@ function renderEntityInLibrary(entity) {
             dragClass: 'sortable-drag',
             delay: 300, // Atraso de 300ms para iniciar o arraste (long-press)
             delayOnTouchOnly: true, // Ativa o delay apenas para dispositivos de toque
+
+            // ---> INÍCIO DA ALTERAÇÃO <---
+            forceFallback: true,  // Garante que o clone do item seja sempre usado
+            fallbackOnBody: true, // Anexa o clone do item ao <body> da página
+            // ---> FIM DA ALTERAÇÃO <---
 
             // A nova lógica para fechar a sidebar:
             onStart: function (evt) {
