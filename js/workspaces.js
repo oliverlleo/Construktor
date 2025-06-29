@@ -306,11 +306,20 @@ async function createNewWorkspace() {
 /**
  * Alterna para uma área de trabalho específica
  */
-async function switchToWorkspace(workspace) {
+export async function switchToWorkspace(workspace) { // Adicionado 'export'
   showLoading("Carregando área de trabalho...");
 
   try {
     currentWorkspace = workspace;
+
+    // ---> INÍCIO DA ALTERAÇÃO <---
+    // Salva o ID e o dono do último workspace no localStorage
+    localStorage.setItem('lastWorkspace', JSON.stringify({
+        id: workspace.id,
+        isOwner: workspace.isOwner,
+        ownerId: workspace.ownerId
+    }));
+    // ---> FIM DA ALTERAÇÃO <---
 
     // Atualiza o seletor
     const workspaceSelect = document.getElementById("workspace-select");
