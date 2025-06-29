@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             // Usuário já autenticado, redireciona para a página principal (CAMINHO CORRIGIDO PARA GITHUB PAGES)
-            window.location.href = '/ConstruktorT/index.html';
+             window.location.href = '../index.html';
         }
     });
     
