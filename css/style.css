@@ -5,7 +5,7 @@ body {
 
 /* Modo Escuro */
 .dark body {
-    background-color: #0f172a;
+    background-color: #1e293b;
     color: #e2e8f0;
 }
 
@@ -23,15 +23,15 @@ body {
 
 /* Estilos específicos para modo escuro */
 .dark .bg-white {
-    background-color: #1e293b !important;
+    background-color: #334155 !important;
 }
 
 .dark .bg-slate-50 {
-    background-color: #0f172a !important;
+    background-color: #1e293b !important;
 }
 
 .dark .bg-slate-100 {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
 }
 
 .dark .text-slate-800 {
@@ -76,12 +76,12 @@ body {
 
 /* Modo escuro para específicos elementos da página de login */
 .dark .notion-auth-container {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
 }
 
 .dark .notion-auth-form {
-    background-color: #1e293b !important;
-    border: 1px solid #475569;
+    background-color: #334155 !important;
+    border: 1px solid #64748b;
 }
 
 /* Corrigir cor do título Construktor na página de login */
@@ -90,24 +90,24 @@ body {
 }
 
 .dark .notion-input {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
     border-color: #64748b !important;
     color: #e2e8f0 !important;
 }
 
 .dark .notion-input:focus {
-    background-color: #475569 !important;
+    background-color: #64748b !important;
     border-color: #6366f1 !important;
 }
 
 .dark .notion-social-btn {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
     border-color: #64748b !important;
     color: #e2e8f0 !important;
 }
 
 .dark .notion-social-btn:hover {
-    background-color: #475569 !important;
+    background-color: #64748b !important;
 }
 
 .dark .notion-auth-tab {
@@ -123,23 +123,23 @@ body {
 }
 
 .dark .notion-code-input {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
     border-color: #64748b !important;
     color: #e2e8f0 !important;
 }
 
 .dark .notion-code-input:focus {
-    background-color: #475569 !important;
+    background-color: #64748b !important;
     border-color: #6366f1 !important;
 }
 
 /* Hover states para modo escuro */
 .dark .hover\:bg-slate-100:hover {
-    background-color: #475569 !important;
+    background-color: #64748b !important;
 }
 
 .dark .hover\:bg-slate-50:hover {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
 }
 
 .dark .hover\:text-slate-600:hover {
@@ -165,11 +165,11 @@ body {
 
 /* Correção para áreas de drop de entidades nos módulos */
 .dark .entities-dropzone {
-    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
+    background: linear-gradient(to bottom, #334155 0%, #1e293b 100%) !important;
 }
 
 .dark .bg-gradient-to-b.from-indigo-50\/50.to-white {
-    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
+    background: linear-gradient(to bottom, #334155 0%, #1e293b 100%) !important;
 }
 
 /* Estados especiais para modo escuro */
@@ -187,6 +187,10 @@ body {
 
 .dark .text-indigo-600 {
     color: #818cf8 !important;
+}
+
+.dark .text-indigo-800 {
+    color: #e2e8f0 !important;
 }
 
 .dark .bg-amber-50 {
@@ -217,7 +221,7 @@ body {
 
 /* Loading overlay em modo escuro */
 .dark .loading-overlay {
-    background-color: rgba(15, 23, 42, 0.9) !important;
+    background-color: rgba(30, 41, 59, 0.9) !important;
 }
 
 #workspace-select {
@@ -228,7 +232,7 @@ body {
 
 /* Modo escuro para selects */
 .dark select {
-    background-color: #334155 !important;
+    background-color: #475569 !important;
     border-color: #64748b !important;
     color: #e2e8f0 !important;
 }
@@ -261,7 +265,7 @@ body {
 }
 
 .dark .spinner {
-    border-color: #334155;
+    border-color: #475569;
     border-bottom-color: #818cf8;
 }
 
@@ -430,7 +434,7 @@ body {
 }
 
 .dark .kanban-column {
-    background-color: #0f172a;
+    background-color: #1e293b;
     border-color: #475569;
 }
 
@@ -443,7 +447,7 @@ body {
 
 .dark .kanban-column-header {
     border-color: #475569;
-    background-color: #334155;
+    background-color: #475569;
 }
 
 .kanban-items {
@@ -463,8 +467,8 @@ body {
 }
 
 .dark .kanban-item {
-    background-color: #1e293b;
-    border-color: #475569;
+    background-color: #334155;
+    border-color: #64748b;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -487,8 +491,8 @@ body {
 }
 
 .dark .gallery-item {
-    background-color: #1e293b;
-    border-color: #475569;
+    background-color: #334155;
+    border-color: #64748b;
 }
 
 .gallery-item:hover {
@@ -520,7 +524,7 @@ body {
 }
 
 .dark .gallery-item-footer {
-    background-color: #0f172a;
+    background-color: #1e293b;
     border-color: #475569;
 }
 

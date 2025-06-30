@@ -7,7 +7,7 @@ import { firebaseConfig, availableEntityIcons, fieldTypes, defaultFieldConfigs }
 import { initAutenticacao, isUsuarioLogado, getUsuarioId } from './autenticacao.js';
 import { initDatabase, loadAllEntities, loadAndRenderModules, loadDroppedEntitiesIntoModules, 
          loadStructureForEntity, createEntity, createModule, saveEntityToModule, deleteEntityFromModule,
-         deleteEntity, deleteModule, saveEntityStructure, saveSubEntityStructure, saveModulesOrder, updateEntityName, copyEntityToModule, getEntities } from './database.js';
+         deleteEntity, deleteModule, saveEntityStructure, saveSubEntityStructure, saveModulesOrder } from './database.js';
 import { initUI, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
@@ -98,9 +98,8 @@ async function initApp() {
         // Verifica os estados vazios
         checkEmptyStates();
         
-        // Torna as funções disponíveis globalmente para uso em outros módulos
+        // Torna a função disponível globalmente para uso em outros módulos
         window.getCurrentWorkspace = getCurrentWorkspace;
-        window.updateEntityName = updateEntityName;
         
         hideLoading();
         document.getElementById('loading-overlay').style.display = 'none';
@@ -621,80 +620,60 @@ function setupEventListeners() {
     }
 }
 
-// Substitua a sua função handleEntityDrop existente por esta versão final.
-
 async function handleEntityDrop(event) {
-    console.log('handleEntityDrop foi acionada. A tomar controlo total da renderização.');
-    const { item, to, from } = event;
-
-    // Removemos imediatamente o item da interface para evitar comportamentos automáticos da biblioteca.
-    // A nossa aplicação irá agora decidir onde e quando o item deve ser renderizado.
-    item.remove();
-
+    console.log('handleEntityDrop chamada com evento:', event);
+    const { item, to } = event;
     const { entityId, entityName, entityIcon } = item.dataset;
-    const toModuleEl = to.closest('.module-quadro');
-    const toModuleId = toModuleEl.dataset.moduleId;
-
-    const isMovingBetweenModules = from.classList.contains('entities-dropzone');
-    const fromModuleEl = isMovingBetweenModules ? from.closest('.module-quadro') : null;
-    const fromModuleId = fromModuleEl ? fromModuleEl.dataset.moduleId : null;
+    const moduleEl = to.closest('.module-quadro');
+    const moduleId = moduleEl.dataset.moduleId;
     
-    // Obter informação completa da entidade para a poder renderizar corretamente.
-    const allEntities = getEntities();
-    const entityInfo = allEntities.find(e => e.id === entityId) || { icon: entityIcon, name: entityName };
+    console.log('Dados da entidade sendo solta:', { entityId, entityName, entityIcon, moduleId });
 
-    // ---> LÓGICA PARA ARRASTAR ENTRE MÓDULOS <---
-    if (isMovingBetweenModules && fromModuleId !== toModuleId) {
-        
-        const choice = await showConfirmDialog(
-            'Mover ou Copiar?',
-            `Deseja mover a entidade "${entityName}" para o novo módulo ou criar uma cópia?`,
-            'Mover',
-            'Copiar',
-            'question'
-        );
-
-        const currentWorkspace = getCurrentWorkspace();
-        const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
-        const ownerId = currentWorkspace && !currentWorkspace.isOwner ? currentWorkspace.ownerId : null;
-
-        if (choice === true) { // AÇÃO: MOVER
-            console.log("Ação: Mover. A renderizar no destino.");
-            renderDroppedEntity(toModuleId, entityId, { entityName: entityName }, entityInfo);
-            
-            await deleteEntityFromModule(fromModuleId, entityId, workspaceId, ownerId);
-            await copyEntityToModule(fromModuleId, toModuleId, entityId, entityName, workspaceId, ownerId);
-            showSuccess('Entidade movida!', `A entidade "${entityName}" foi movida com sucesso.`);
-        
-        } else if (choice === false) { // AÇÃO: COPIAR
-            console.log("Ação: Copiar. A renderizar na origem e no destino.");
-            renderDroppedEntity(fromModuleId, entityId, { entityName: entityName }, entityInfo); // Devolve à origem
-            renderDroppedEntity(toModuleId, entityId, { entityName: entityName }, entityInfo);   // Adiciona ao destino
-            
-            await copyEntityToModule(fromModuleId, toModuleId, entityId, entityName, workspaceId, ownerId);
-            showSuccess('Entidade copiada!', `Uma cópia de "${entityName}" foi criada.`);
-        
-        } else { // AÇÃO: CANCELAR
-            console.log("Ação: Cancelar. A renderizar de volta na origem.");
-            renderDroppedEntity(fromModuleId, entityId, { entityName: entityName }, entityInfo);
-        }
-
+    if (moduleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`)) {
+        item.remove();
+        showError('Entidade já existe!', `A entidade "${entityName}" já está presente neste módulo.`);
         return;
     }
-
-    // ---> LÓGICA PARA ARRASTAR DA BIBLIOTECA <---
-    if (toModuleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`)) {
-        showError('Entidade já existe!', `A entidade "${entityName}" já está neste módulo.`);
-        return; // Não é necessário renderizar de volta na biblioteca, pois ela não é modificada.
+    
+    item.remove();
+    
+    const template = document.getElementById('dropped-entity-card-template');
+    const clone = template.content.cloneNode(true);
+    const card = clone.querySelector('.dropped-entity-card');
+    card.dataset.entityId = entityId;
+    card.dataset.entityName = entityName;
+    card.dataset.moduleId = moduleId;
+    
+    const iconEl = clone.querySelector('.entity-icon');
+    if (entityIcon) {
+       iconEl.setAttribute('data-lucide', entityIcon);
+    } else {
+       iconEl.style.display = 'none';
     }
 
+    clone.querySelector('.entity-name').textContent = entityName;
+    to.appendChild(clone);
+    
+    if (window.lucide) {
+        lucide.createIcons();
+    } else {
+        createIcons();
+    }
+    
+    const entityCard = to.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
+    if (entityCard) {
+        setTimeout(() => {
+            entityCard.classList.remove('animate-pulse');
+        }, 2000);
+    }
+    
     const currentWorkspace = getCurrentWorkspace();
     const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
-    const ownerId = currentWorkspace && !currentWorkspace.isOwner ? currentWorkspace.ownerId : null;
-
-    await saveEntityToModule(toModuleId, entityId, entityName, workspaceId, ownerId);
-    renderDroppedEntity(toModuleId, entityId, { entityName }, entityInfo);
-    console.log('Entidade adicionada da biblioteca para o módulo com sucesso.');
+    const ownerId = currentWorkspace && currentWorkspace.isShared ? currentWorkspace.ownerId : null;
+    await saveEntityToModule(moduleId, entityId, entityName, workspaceId, ownerId);
+    
+    console.log('Entidade salva no módulo com sucesso');
+    showSuccess('Entidade adicionada!', 'Clique em configurar para definir seus campos.');
 }
 
 async function handleFieldDrop(event) {
