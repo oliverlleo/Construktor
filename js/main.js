@@ -685,6 +685,10 @@ async function handleEntityDrop(event) {
             // Opção COPIAR: manter no módulo de origem e adicionar ao destino com estrutura copiada
             await copyEntityToModule(fromModuleId, moduleId, entityId, entityName, workspaceId, ownerId);
             showSuccess('Entidade copiada!', `Uma cópia da entidade "${entityName}" foi adicionada ao novo módulo com sua configuração.`);
+
+            // ADICIONAR ESTA LINHA PARA ATUALIZAR A UI
+            const allEntities = getEntities(); // Ensure allEntities is available
+            renderDroppedEntity(moduleId, entityId, { entityName: entityName, entityIcon: entityIcon }, allEntities.find(e => e.id === entityId));
         } else {
             // Usuário cancelou, não fazer nada
             return;
