@@ -5,10 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Construktor - Construtor Visual de ERP/CRM</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="imagem/logo.png" type="image/png">
     <!-- Dependências Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        // Configuração do Tailwind para modo escuro
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
@@ -173,9 +182,7 @@
                 </button>
                 <div class="relative">
                     <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
-                        <div class="p-2 sm:p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg shadow-md">
-                            <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                        </div>
+                        <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
                         <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
                         <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400"></i>
                     </button>
@@ -339,6 +346,9 @@
                 </div>
             </aside>
 
+            <!-- Barra de redimensionamento - visível apenas em desktop -->
+            <div id="resize-handle" class="cursor-col-resize w-1 bg-indigo-300 hover:bg-indigo-500 transition-colors absolute inset-y-0 left-80 z-30 opacity-0 sm:opacity-100 hover:w-2 hover:opacity-70 hidden sm:block"></div>
+            
             <!-- Conteúdo principal -->
             <section class="flex-1 overflow-hidden flex flex-col sm:ml-80">
                 <div class="border-b border-slate-200 bg-white py-3 px-4 sm:px-6 flex justify-between items-center shadow-sm">
@@ -897,9 +907,14 @@
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-3 sm:p-4 text-white">
                 <div class="flex justify-between items-center">
                     <h3 class="module-title text-base sm:text-lg font-bold"></h3>
-                    <button class="delete-module-btn text-white/70 hover:text-white p-1 sm:p-1.5 rounded-md transition-colors hover:bg-white/10">
-                        <i class="fa-solid fa-trash-can h-4 w-4 sm:h-5 sm:w-5"></i>
-                    </button>
+                    <div class="flex items-center gap-1">
+                        <button class="edit-module-btn text-white/70 hover:text-white p-1 sm:p-1.5 rounded-md transition-colors hover:bg-white/10">
+                            <i class="fa-solid fa-pen-to-square h-4 w-4 sm:h-5 sm:w-5"></i>
+                        </button>
+                        <button class="delete-module-btn text-white/70 hover:text-white p-1 sm:p-1.5 rounded-md transition-colors hover:bg-white/10">
+                            <i class="fa-solid fa-trash-can h-4 w-4 sm:h-5 sm:w-5"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="entities-dropzone p-3 sm:p-4 space-y-2 sm:space-y-3 min-h-[150px] sm:min-h-[220px] bg-gradient-to-b from-indigo-50/50 to-white"></div>
@@ -921,6 +936,9 @@
                 <span class="entity-name font-medium text-slate-700 text-sm sm:text-base"></span>
             </div>
             <div class="flex items-center gap-1 sm:gap-2">
+                <button class="edit-entity-btn text-slate-400 hover:text-indigo-600 p-1 rounded-md transition-colors">
+                    <i class="fa-solid fa-pen-to-square h-4 w-4"></i>
+                </button>
                 <button class="delete-custom-entity-btn text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors hidden">
                     <i class="fa-solid fa-trash-can h-4 w-4"></i>
                 </button>
@@ -941,6 +959,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-1 sm:gap-2">
+                <button class="edit-entity-btn text-slate-400 hover:text-indigo-600 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-indigo-50">
+                    <i class="fa-solid fa-pen-to-square h-4 w-4 sm:h-5 sm:w-5"></i>
+                </button>
                 <button class="configure-btn text-indigo-600 hover:text-indigo-800 p-1 sm:p-1.5 rounded-md transition-colors hover:bg-indigo-50">
                     <i class="fa-solid fa-gear h-4 w-4 sm:h-5 sm:w-5"></i>
                 </button>
@@ -1109,5 +1130,9 @@
 
     <!-- Scripts Modularizados -->
     <script type="module" src="js/main.js"></script>
-</body>
+    <!-- Script do Modo Escuro -->
+    <script src="js/dark-mode.js"></script>
+    <!-- Script de Melhorias de UI -->
+    <script src="js/ui-enhancements.js"></script>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></body>
 </html>
