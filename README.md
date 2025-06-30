@@ -1,25 +1,26 @@
 # Construktor - Sistema de Construção Visual de ERP/CRM
 
 **VERSÃO CORRIGIDA E ATUALIZADA**  
-Exportada em: 26/06/2025 às 16:31:46
+Exportada em: 29/06/2025 às 23:53:22
 
 ## ✅ Correções Aplicadas Nesta Versão
 
-### Problemas de Performance Resolvidos
-- **Corrigido**: Erros infinitos de ícones Lucide que travavam o sistema
-- **Implementado**: Sistema de debounce para atualização de ícones
-- **Otimizado**: MutationObserver com verificação inteligente de mudanças
-
-### Funcionalidades de Convites Corrigidas
-- **✅ Cancelar convites**: Agora funciona corretamente na aba "Enviados"
-- **✅ Editar permissões**: Dropdown para alterar permissões (Admin/Editor/Leitor)
-- **✅ Remover acesso**: Funcionalidade completa de remoção de usuários
-- **✅ Interface melhorada**: Botões com texto e estilo consistente
+### Sistema de Modo Escuro Implementado
+- **🌙 Modo Escuro**: Sistema completo de alternância entre modo claro e escuro
+- **☀️ Seletores de Tema**: Sol/lua na página de login e menu do usuário
+- **💾 Persistência**: Preferência salva automaticamente no localStorage
+- **🎨 Design Consistente**: Cores otimizadas para melhor experiência visual
 
 ### Melhorias na Interface
-- **Botões padronizados**: Todos os botões de ação seguem o mesmo padrão visual
-- **Feedback visual**: Melhor indicação de ações disponíveis
-- **Responsividade**: Interface otimizada para diferentes tamanhos de tela
+- **Cores Corrigidas**: Área de entidades nos módulos com cores adequadas ao modo escuro
+- **Título Login**: Nome "Construktor" agora aparece corretamente em branco no modo escuro
+- **⚡ Tecla Enter**: Formulários de login e registro respondem à tecla Enter
+- **📱 Responsividade**: Interface otimizada para diferentes tamanhos de tela
+
+### Limpeza de Código
+- **🧹 Scripts Removidos**: Scripts youware-lib removidos de todos os arquivos HTML
+- **📁 Arquivos Atualizados**: Todos os arquivos incluídos no sistema de download
+- **🔧 Modo Escuro**: Sistema dark-mode.js incluído na estrutura
 
 ## Descrição
 O Construktor é um sistema visual para construção de ERP/CRM, permitindo criar e gerenciar módulos, entidades e campos de formulários.
@@ -31,6 +32,8 @@ O Construktor é um sistema visual para construção de ERP/CRM, permitindo cria
 - 👥 Sistema completo de convites e permissões
 - 🔄 Áreas de trabalho compartilhadas
 - 🛡️ Controle granular de acesso (Admin/Editor/Leitor)
+- 🌙 Modo escuro com alternância sol/lua
+- ⚡ Suporte à tecla Enter em formulários
 
 ## Estrutura de Arquivos
 ### Arquivos Principais
@@ -38,6 +41,9 @@ O Construktor é um sistema visual para construção de ERP/CRM, permitindo cria
 - `js/main.js` - Arquivo JavaScript principal
 - `js/user/invitations.js` - Sistema de convites (TOTALMENTE REESCRITO)
 - `js/config.js` - Configurações da aplicação
+
+### Sistema de Temas
+- `js/dark-mode.js` - Gerenciador de modo escuro/claro (NOVO)
 
 ### Configuração e Documentação
 - `firebase_rules.json` - Regras de segurança do Firebase
@@ -52,9 +58,10 @@ O Construktor é um sistema visual para construção de ERP/CRM, permitindo cria
 - **UI**: SweetAlert2, Sortable.js
 
 ## 📝 Notas Importantes
-Esta versão inclui todas as correções críticas para:
-1. Performance e estabilidade do sistema
-2. Funcionalidades de gerenciamento de convites
-3. Interface de usuário consistente e intuitiva
+Esta versão inclui todas as correções e melhorias para:
+1. Sistema completo de modo escuro com seletores sol/lua
+2. Cores otimizadas para melhor experiência visual
+3. Funcionalidade Enter em todos os formulários de autenticação
+4. Código limpo sem dependências externas desnecessárias
 
 Para mais informações técnicas, consulte `YOUWARE.md`.

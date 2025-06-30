@@ -8,6 +8,15 @@
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        // Configuração do Tailwind para modo escuro
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
@@ -528,7 +537,7 @@
             <div class="notion-auth-header">
                 <div class="notion-auth-logo">
                     <div class="notion-logo-container">
-                        <img src="../imagem/logo.png" alt="Construktor Logo" class="w-9 h-9">
+                        <i data-lucide="layout-dashboard" class="w-9 h-9"></i>
                     </div>
                 </div>
                 <h1 class="text-2xl font-bold text-slate-900 mb-1">Construktor</h1>
@@ -670,5 +679,7 @@
 
     <!-- Script JS modularizado (CAMINHO CORRIGIDO) -->
     <script type="module" src="../js/login.js"></script>
+    <!-- Script do Modo Escuro -->
+    <script src="../js/dark-mode.js"></script>
 </body>
 </html>

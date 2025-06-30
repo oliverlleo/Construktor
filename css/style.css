@@ -1,12 +1,240 @@
-
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f8fafc;
 }
+
+/* Modo Escuro */
+.dark body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Configuração do modo escuro */
+@media (prefers-color-scheme: dark) {
+    .dark {
+        color-scheme: dark;
+    }
+}
+
+/* Transições suaves para mudança de tema */
+*, *::before, *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Estilos específicos para modo escuro */
+.dark .bg-white {
+    background-color: #1e293b !important;
+}
+
+.dark .bg-slate-50 {
+    background-color: #0f172a !important;
+}
+
+.dark .bg-slate-100 {
+    background-color: #334155 !important;
+}
+
+.dark .text-slate-800 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-slate-700 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+    color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+    color: #64748b !important;
+}
+
+.dark .border-slate-200 {
+    border-color: #475569 !important;
+}
+
+.dark .border-slate-300 {
+    border-color: #64748b !important;
+}
+
+.dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Modo escuro para específicos elementos da página de login */
+.dark .notion-auth-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.dark .notion-auth-form {
+    background-color: #1e293b !important;
+    border: 1px solid #475569;
+}
+
+/* Corrigir cor do título Construktor na página de login */
+.dark .notion-auth-header h1 {
+    color: white !important;
+}
+
+.dark .notion-input {
+    background-color: #334155 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-input:focus {
+    background-color: #475569 !important;
+    border-color: #6366f1 !important;
+}
+
+.dark .notion-social-btn {
+    background-color: #334155 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-social-btn:hover {
+    background-color: #475569 !important;
+}
+
+.dark .notion-auth-tab {
+    color: #94a3b8 !important;
+}
+
+.dark .notion-auth-tab.active {
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-divider-line {
+    background-color: #64748b !important;
+}
+
+.dark .notion-code-input {
+    background-color: #334155 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-code-input:focus {
+    background-color: #475569 !important;
+    border-color: #6366f1 !important;
+}
+
+/* Hover states para modo escuro */
+.dark .hover\:bg-slate-100:hover {
+    background-color: #475569 !important;
+}
+
+.dark .hover\:bg-slate-50:hover {
+    background-color: #334155 !important;
+}
+
+.dark .hover\:text-slate-600:hover {
+    color: #94a3b8 !important;
+}
+
+.dark .hover\:text-slate-700:hover {
+    color: #cbd5e1 !important;
+}
+
+/* Modo escuro para gradientes */
+.dark .bg-gradient-to-r.from-indigo-500.to-purple-600 {
+    background: linear-gradient(to right, #4f46e5, #7c3aed) !important;
+}
+
+.dark .bg-gradient-to-r.from-indigo-600.to-purple-600 {
+    background: linear-gradient(to right, #4338ca, #7c3aed) !important;
+}
+
+.dark .bg-gradient-to-r.from-green-600.to-teal-600 {
+    background: linear-gradient(to right, #059669, #0d9488) !important;
+}
+
+/* Correção para áreas de drop de entidades nos módulos */
+.dark .entities-dropzone {
+    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.dark .bg-gradient-to-b.from-indigo-50\/50.to-white {
+    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
+}
+
+/* Estados especiais para modo escuro */
+.dark .bg-indigo-50 {
+    background-color: #1e1b4b !important;
+}
+
+.dark .text-indigo-700 {
+    color: #a5b4fc !important;
+}
+
+.dark .bg-indigo-100 {
+    background-color: #312e81 !important;
+}
+
+.dark .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+.dark .bg-amber-50 {
+    background-color: #451a03 !important;
+}
+
+.dark .text-amber-800 {
+    color: #fbbf24 !important;
+}
+
+.dark .border-amber-200 {
+    border-color: #92400e !important;
+}
+
+.dark .text-amber-500 {
+    color: #f59e0b !important;
+}
+
+/* Elementos específicos do sistema */
+.dark .entities-dropzone:empty::after {
+    color: #64748b !important;
+    border-color: #475569 !important;
+}
+
+.dark #form-builder-dropzone:empty::after {
+    color: #64748b !important;
+}
+
+/* Loading overlay em modo escuro */
+.dark .loading-overlay {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
 #workspace-select {
   /* Esta é a regra que faltava: */
   /* Força o select a poder encolher, ignorando a largura do seu conteúdo. */
   min-width: 0;
+}
+
+/* Modo escuro para selects */
+.dark select {
+    background-color: #334155 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark select:focus {
+    border-color: #6366f1 !important;
 }
 
 /* Loading Animation */
@@ -32,6 +260,11 @@ body {
     animation: rotation 1s linear infinite;
 }
 
+.dark .spinner {
+    border-color: #334155;
+    border-bottom-color: #818cf8;
+}
+
 @media (min-width: 640px) {
     .spinner {
         width: 56px;
@@ -53,6 +286,11 @@ body {
     box-shadow: none !important;
 }
 
+.dark .sortable-ghost {
+    background-color: #1e1b4b !important;
+    border-color: #818cf8 !important;
+}
+
 .sortable-drag { 
     opacity: 1 !important; 
     cursor: grabbing;
@@ -62,6 +300,10 @@ body {
 
 .sortable-chosen {
     background-color: #f5f5ff;
+}
+
+.dark .sortable-chosen {
+    background-color: #1e1b4b;
 }
 
 .toolbox-item {
@@ -82,6 +324,12 @@ body {
 .toolbox-item[data-field-type="sub-entity"] {
     background-color: #eef2ff;
     border-color: #c7d2fe;
+}
+
+.dark .toolbox-item[data-field-type="relationship"],
+.dark .toolbox-item[data-field-type="sub-entity"] {
+    background-color: #1e1b4b;
+    border-color: #312e81;
 }
 
 /* Animation for new elements */
@@ -124,6 +372,11 @@ body {
     background-color: rgba(79, 70, 229, 0.05);
 }
 
+.dark .view-tab.active {
+    color: #818cf8;
+    background-color: rgba(129, 140, 248, 0.1);
+}
+
 /* Estilos para o Kanban Board */
 .kanban-column {
     min-width: 280px;
@@ -133,11 +386,21 @@ body {
     border: 1px solid #e2e8f0; /* slate-200 */
 }
 
+.dark .kanban-column {
+    background-color: #0f172a;
+    border-color: #475569;
+}
+
 .kanban-column-header {
     padding: 0.75rem;
     border-bottom: 1px solid #e2e8f0; /* slate-200 */
     background-color: #f1f5f9; /* slate-100 */
     border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dark .kanban-column-header {
+    border-color: #475569;
+    background-color: #334155;
 }
 
 .kanban-items {
@@ -156,9 +419,19 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.dark .kanban-item {
+    background-color: #1e293b;
+    border-color: #475569;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .kanban-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dark .kanban-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Estilos para a visualização em galeria */
@@ -170,14 +443,27 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.dark .gallery-item {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
 .gallery-item:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
 }
 
+.dark .gallery-item:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
 .gallery-item-header {
     padding: 1rem;
     border-bottom: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.dark .gallery-item-header {
+    border-color: #475569;
 }
 
 .gallery-item-body {
@@ -188,6 +474,11 @@ body {
     padding: 0.75rem 1rem;
     background-color: #f8fafc; /* slate-50 */
     border-top: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.dark .gallery-item-footer {
+    background-color: #0f172a;
+    border-color: #475569;
 }
 
 /* Estilos para a tabela responsiva */
@@ -215,11 +506,19 @@ body {
     z-index: 10;
 }
 
+.dark .sortable-chosen {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
 .sortable-drag {
     cursor: grabbing;
     opacity: 0.9;
     transform: scale(1.02);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dark .sortable-drag {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .module-quadro {
@@ -230,6 +529,10 @@ body {
 .module-quadro:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.dark .module-quadro:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Empty States */
@@ -267,7 +570,15 @@ body {
     border-radius: 3px;
 }
 
+.dark .no-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.5);
+}
+
 .no-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.7);
+}
+
+.dark .no-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: rgba(148, 163, 184, 0.7);
 }
 
@@ -293,6 +604,10 @@ button {
 /* Custom effects */
 .shadow-highlight {
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.dark .shadow-highlight {
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.3);
 }
 
 /* Button hover effects */
@@ -706,17 +1021,18 @@ pre {
     border-radius: 2px;
 }
 
-}
 @media (max-width: 640px) {
     .code-container {
         max-height: 400px;
     }
 }
+
 @media (max-width: 640px) {
     #entity-builder-modal {
         padding: 0;
     }
 }
+
 @media (max-width: 640px) {
   #swal-input-name {
     margin-left: -1.25rem;
