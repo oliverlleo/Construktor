@@ -295,7 +295,7 @@ body {
     opacity: 1 !important; 
     cursor: grabbing;
     transform: scale(1.02);
-    z-index: 10;
+    z-index: 1000; /* Maior z-index para garantir visibilidade */
 }
 
 .sortable-chosen {
@@ -304,6 +304,49 @@ body {
 
 .dark .sortable-chosen {
     background-color: #1e1b4b;
+}
+
+/* Melhoria para drag and drop em dispositivos móveis */
+.touch-action-none {
+    touch-action: none !important; /* Previne scroll do navegador durante o drag */
+}
+
+/* Melhor feedback visual para toque em dispositivos móveis */
+@media (max-width: 640px) {
+    .entity-card {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .entity-card:active,
+    .entity-card.active-touch {
+        transform: scale(1.03);
+        background-color: #f8fafc;
+        border-color: #6366f1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sortable-drag {
+        transform: scale(1.05) !important; /* Maior para melhor visualização */
+        opacity: 0.9 !important; /* Mais transparente para ver onde vai cair */
+    }
+    
+    .sortable-ghost {
+        opacity: 0.7 !important; /* Mais visível em mobile */
+        border-width: 3px !important;
+    }
+    
+    /* Melhoria específica para containers de entidades em mobile */
+    .entities-dropzone {
+        min-height: 120px !important;
+        border: 1px dashed rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Feedback visual quando uma dropzone pode receber itens */
+    .entities-dropzone.sortable-active {
+        background-color: rgba(99, 102, 241, 0.05) !important;
+        border: 1px dashed rgba(99, 102, 241, 0.5) !important;
+    }
 }
 
 .toolbox-item {
@@ -728,15 +771,99 @@ button:active {
 }
 
 /* Limitação de texto em elementos móveis */
-.module-title, .entity-name {
+.module-title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 150px;
 }
 
+/* Permitir quebra de linha para nomes de entidades */
+.entity-name {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 150px;
+    line-height: 1.2;
+}
+
+/* Estilos para redimensionamento da barra lateral */
+#resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: rgba(99, 102, 241, 0.3);
+    cursor: col-resize;
+    z-index: 30;
+    transition: all 0.2s ease;
+    left: 320px; /* 80 * 4 = 320px (20rem) */
+    display: none; /* Oculto por padrão */
+}
+
+/* Apenas mostrar em telas maiores (sm:) */
 @media (min-width: 640px) {
-    .module-title, .entity-name {
+    #resize-handle {
+        display: block;
+    }
+}
+
+#resize-handle:hover {
+    background-color: rgba(99, 102, 241, 0.5);
+    width: 6px;
+}
+
+#resize-handle.resizing {
+    background-color: rgba(99, 102, 241, 0.8) !important;
+    width: 6px !important;
+}
+
+/* Evita seleção de texto durante redimensionamento */
+.select-none {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.cursor-col-resize {
+    cursor: col-resize !important;
+}
+
+.cursor-col-resize * {
+    cursor: col-resize !important;
+}
+
+/* Melhorias para o drag and drop */
+.dragging {
+    opacity: 0.8;
+    transform: scale(1.02);
+    z-index: 1000;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    border: 2px dashed rgba(99, 102, 241, 0.5) !important;
+}
+
+.sortable-chosen {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.sortable-drag {
+    cursor: grabbing !important;
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 640px) {
+    .module-title {
+        max-width: 200px;
+    }
+    
+    .entity-name {
         max-width: 200px;
     }
 }

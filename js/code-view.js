@@ -12,16 +12,90 @@ const fileStructure = {
     'js/login.js': { path: '../js/login.js', type: 'javascript' },
     'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
     'js/dark-mode.js': { path: '../js/dark-mode.js', type: 'javascript' },
+    'js/ui-enhancements.js': { path: '../js/ui-enhancements.js', type: 'javascript' },
     'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },
     'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'javascript' },
     'pages/login.html': { path: '../pages/login.html', type: 'html' },
     'pages/code-view.html': { path: 'code-view.html', type: 'html' },
     'pages/user-view.html': { path: '../pages/user-view.html', type: 'html' },
     
+    // Arquivos de imagem
+    'imagem/logo.png': { path: '../imagem/logo.png', type: 'image' },
+    
     // Arquivos de documentação e configuração
     'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' },
-    'firebase_rules.json': { path: '../firebase_rules.json', type: 'json' },
-    'database-rules-guide.md': { path: '../database-rules-guide.md', type: 'markdown' }
+    'README.md': { content: `# Construktor - Sistema de Criação de ERP/CRM
+
+## Descrição
+Construktor é uma plataforma visual que permite a criação de sistemas ERP/CRM através de uma interface intuitiva de arrastar e soltar (drag and drop). Oferece funcionalidades para definir módulos, entidades e campos personalizados.
+
+## Funcionalidades Principais
+
+### Construção de Módulos
+- Crie módulos para organizar seu sistema (ex: Vendas, Compras, RH)
+- Arraste e solte entidades nos módulos
+- Reorganize módulos livremente
+- **NOVO**: Edite nomes de módulos facilmente
+- **NOVO**: Confirmação ao remover entidades
+
+### Gerenciamento de Entidades
+- Biblioteca de entidades pré-definidas
+- Criação de entidades personalizadas
+- Personalização de campos e propriedades
+- **NOVO**: Edição de nomes de entidades
+- **NOVO**: Suporte a nomes longos com quebra de linha
+- **NOVO**: Transferência de entidades entre módulos
+
+### Interface Responsiva e Personalizável
+- Design mobile-first
+- Suporte a dispositivos touchscreen
+- **NOVO**: Biblioteca de componentes redimensionável
+- **NOVO**: Modo escuro/claro com tema padrão claro
+- **NOVO**: Novo logo personalizado
+
+### Melhorias de UX
+- **NOVO**: Confirmação antes de excluir entidades
+- **NOVO**: Feedback visual durante operações de drag-and-drop
+- **NOVO**: Persistência de preferências de interface
+- Funcionalidade Enter para envio de formulários
+
+## Tecnologias Utilizadas
+- HTML5, CSS3, JavaScript (ES6+)
+- Firebase (Autenticação, Banco de Dados, Storage)
+- TailwindCSS para estilização
+- SortableJS para funcionalidades de arrastar e soltar
+- Lucide e Font Awesome para ícones
+- SweetAlert2 para diálogos
+
+## Arquitetura Modular
+- **js/main.js**: Coordenação geral da aplicação
+- **js/ui-enhancements.js**: Melhorias avançadas de interface
+- **js/dark-mode.js**: Gerenciamento de temas
+- **js/login.js**: Sistema de autenticação
+- **css/style.css**: Estilos responsivos e modo escuro
+
+## Como Usar
+1. Faça login com sua conta
+2. Crie uma área de trabalho
+3. Adicione módulos ao seu sistema
+4. Arraste entidades para os módulos
+5. **NOVO**: Edite nomes clicando nos botões de edição
+6. **NOVO**: Redimensione a biblioteca conforme necessário
+7. Configure campos e visualize sua criação
+
+## Novidades desta Versão
+- ✅ Tema padrão claro (não mais escuro)
+- ✅ Edição de nomes de módulos e entidades
+- ✅ Transferência de entidades entre módulos (corrigido)
+- ✅ Barra de redimensionamento da biblioteca (apenas em desktop)
+- ✅ Novo logo personalizado
+- ✅ Melhor feedback visual
+- ✅ Quebra de linha para nomes longos
+- ✅ Experiência melhorada em dispositivos móveis
+- ✅ Drag and drop otimizado e corrigido
+
+## Licença
+Este projeto é protegido por direitos autorais. Todos os direitos reservados.`, type: 'markdown' }
 };
 
 // Código fonte dos arquivos

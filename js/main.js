@@ -142,6 +142,12 @@ async function loadWorkspaceData(workspace) {
         await loadAndRenderModules(renderModule, workspaceId, ownerId);
         await loadDroppedEntitiesIntoModules(renderDroppedEntity, workspaceId, ownerId);
         
+        // Força a reconfiguração do drag-and-drop para todos os módulos existentes
+        const allModules = document.querySelectorAll('.module-quadro');
+        allModules.forEach(moduleEl => {
+            setupDragAndDropForModule(moduleEl);
+        });
+        
         checkEmptyStates();
         
         if (window.lucide) {
@@ -204,8 +210,9 @@ function renderEntityInLibrary(entity) {
     }
     
     if (list && !list._sortable) {
+        console.log('Configurando Sortable para biblioteca de entidades');
         list._sortable = new Sortable(list, {
-            group: { name: 'entities', pull: 'clone', put: false },
+            group: { name: 'shared-entities', pull: 'clone', put: false },
             sort: false,
             animation: 150,
             ghostClass: 'sortable-ghost',
@@ -216,12 +223,14 @@ function renderEntityInLibrary(entity) {
 
             // A nova lógica para fechar a sidebar:
             onStart: function (evt) {
+                console.log('Iniciando drag de entidade da biblioteca:', evt.item.dataset);
                 // Verifica se a tela é mobile
                 if (window.innerWidth < 640) {
                     closeMobileSidebar(); // Apenas chame a função centralizada
                 }
             },
         });
+        console.log('Sortable configurado para biblioteca de entidades com sucesso');
     }
 }
 
@@ -420,10 +429,19 @@ function updateModalBreadcrumb() {
 // ---- Funções de Interação ----
 function setupDragAndDropForModule(moduleElement) {
     const dropzone = moduleElement.querySelector('.entities-dropzone');
-    if (!dropzone || dropzone._sortable) return;
+    if (!dropzone) {
+        console.warn('Dropzone não encontrada para módulo:', moduleElement.dataset.moduleId);
+        return;
+    }
     
+    if (dropzone._sortable) {
+        console.log('Sortable já configurado para módulo:', moduleElement.dataset.moduleId);
+        return;
+    }
+    
+    console.log('Configurando Sortable para módulo:', moduleElement.dataset.moduleId);
     dropzone._sortable = new Sortable(dropzone, { 
-        group: 'entities', 
+        group: 'shared-entities', 
         animation: 150, 
         onAdd: handleEntityDrop,
         ghostClass: 'sortable-ghost',
@@ -432,6 +450,7 @@ function setupDragAndDropForModule(moduleElement) {
         delay: 50,
         delayOnTouchOnly: true,
     });
+    console.log('Sortable configurado para módulo com sucesso:', moduleElement.dataset.moduleId);
 }
 
 function setupEventListeners() {
@@ -602,10 +621,13 @@ function setupEventListeners() {
 }
 
 async function handleEntityDrop(event) {
+    console.log('handleEntityDrop chamada com evento:', event);
     const { item, to } = event;
     const { entityId, entityName, entityIcon } = item.dataset;
     const moduleEl = to.closest('.module-quadro');
     const moduleId = moduleEl.dataset.moduleId;
+    
+    console.log('Dados da entidade sendo solta:', { entityId, entityName, entityIcon, moduleId });
 
     if (moduleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`)) {
         item.remove();
@@ -650,6 +672,7 @@ async function handleEntityDrop(event) {
     const ownerId = currentWorkspace && currentWorkspace.isShared ? currentWorkspace.ownerId : null;
     await saveEntityToModule(moduleId, entityId, entityName, workspaceId, ownerId);
     
+    console.log('Entidade salva no módulo com sucesso');
     showSuccess('Entidade adicionada!', 'Clique em configurar para definir seus campos.');
 }
 

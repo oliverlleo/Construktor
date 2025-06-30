@@ -6,11 +6,12 @@ class DarkModeManager {
     }
 
     init() {
-        // Inicializa o tema baseado na preferência salva ou preferência do sistema
+        // Inicializa o tema baseado na preferência salva ou preferência padrão (claro)
         const savedTheme = localStorage.getItem(this.storageKey);
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        // Tema padrão é claro, só muda para escuro se explicitamente salvo como 'dark'
+        if (savedTheme === 'dark') {
             this.enableDarkMode();
         } else {
             this.enableLightMode();
