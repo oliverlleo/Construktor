@@ -310,6 +310,41 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
 }
 
 /**
+ * Copia uma entidade de um módulo para outro, incluindo sua estrutura
+ * @param {string} fromModuleId - ID do módulo de origem
+ * @param {string} toModuleId - ID do módulo de destino
+ * @param {string} entityId - ID da entidade
+ * @param {string} entityName - Nome da entidade
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional)
+ * @returns {Promise<void>}
+ */
+export async function copyEntityToModule(fromModuleId, toModuleId, entityId, entityName, workspaceId = 'default', ownerId = null) {
+    try {
+        // Carrega a estrutura da entidade no módulo de origem
+        const fromPath = getDbPath(workspaceId, ownerId, `schemas/${fromModuleId}/${entityId}`);
+        const fromSnapshot = await db.ref(fromPath).get();
+        
+        let entityStructure = { entityName: entityName, attributes: [] };
+        
+        if (fromSnapshot.exists()) {
+            // Se a entidade já tem estrutura no módulo de origem, copia ela
+            entityStructure = fromSnapshot.val();
+        }
+        
+        // Salva no módulo de destino
+        const toPath = getDbPath(workspaceId, ownerId, `schemas/${toModuleId}/${entityId}`);
+        await db.ref(toPath).set(entityStructure);
+        
+        console.log(`Entidade ${entityName} copiada de ${fromModuleId} para ${toModuleId} com estrutura:`, entityStructure);
+    } catch (error) {
+        console.error("Erro ao copiar entidade entre módulos:", error);
+        showError('Erro ao Copiar', 'Não foi possível copiar a entidade com sua configuração.');
+        throw error;
+    }
+}
+
+/**
  * Remove uma entidade de um módulo
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
@@ -324,6 +359,55 @@ export async function deleteEntityFromModule(moduleId, entityId, workspaceId = '
     } catch (error) {
         console.error("Erro ao remover entidade do módulo:", error);
         showError('Erro ao Remover', 'Não foi possível remover a entidade do módulo.');
+        throw error;
+    }
+}
+
+/**
+ * Atualiza o nome de uma entidade
+ * @param {string} entityId - ID da entidade
+ * @param {string} newName - Novo nome da entidade
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional)
+ * @returns {Promise<void>}
+ */
+export async function updateEntityName(entityId, newName, workspaceId = 'default', ownerId = null) {
+    try {
+        showLoading('Atualizando nome da entidade...');
+        
+        // Atualiza o nome na biblioteca de entidades
+        const entityPath = getDbPath(workspaceId, ownerId, `entities/${entityId}/name`);
+        await db.ref(entityPath).set(newName);
+        
+        // Atualiza o nome em todos os módulos onde a entidade está presente
+        const schemasPath = getDbPath(workspaceId, ownerId, 'schemas');
+        const snapshot = await db.ref(schemasPath).get();
+        if (snapshot.exists()) {
+            const updates = {};
+            snapshot.forEach(moduleSnapshot => {
+                const moduleId = moduleSnapshot.key;
+                if (moduleSnapshot.hasChild(entityId)) {
+                    updates[`${schemasPath}/${moduleId}/${entityId}/entityName`] = newName;
+                }
+            });
+            if (Object.keys(updates).length > 0) {
+                await db.ref().update(updates);
+            }
+        }
+        
+        // Atualiza a lista local se for o workspace do usuário atual
+        if (!ownerId || ownerId === getUsuarioId()) {
+            const entity = allEntities.find(e => e.id === entityId);
+            if (entity) {
+                entity.name = newName;
+            }
+        }
+        
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        console.error("Erro ao atualizar nome da entidade:", error);
+        showError('Erro ao Atualizar', 'Não foi possível atualizar o nome da entidade.');
         throw error;
     }
 }
