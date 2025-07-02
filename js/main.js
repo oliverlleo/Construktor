@@ -2376,65 +2376,50 @@ function updateValueOptionsForPropertyType(propertyType, propertyConfig = {}) {
 }
 
 /**
- * Gera opções de valor para campos de texto
+ * Gera opções de valor para campos de texto, com a nova interface.
  */
 function generateTextFieldValueOptions() {
     return `
         <div class="space-y-3">
-            <div class="text-sm font-medium text-purple-800 mb-2">Qual ação executar no campo?</div>
+            <div class="text-sm font-medium text-purple-800 mb-2">Qual ação executar no campo de texto?</div>
 
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
+            <label class="flex items-start gap-3 p-3 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
                 <input type="radio" name="action-value-type" value="replace" class="text-purple-600 focus:ring-purple-500 mt-1" checked>
                 <div class="flex-1">
-                    <span class="text-sm font-medium">Substituir por</span>
-                    <p class="text-xs text-slate-500">O conteúdo atual será apagado e substituído pelo texto fornecido.</p>
-                    <input type="text" id="text-fixed-value-replace" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="Digite o novo texto...">
+                    <span class="text-sm font-medium text-slate-800">Substituir por</span>
+                    <p class="text-xs text-slate-500 mt-0.5">O conteúdo atual será apagado e substituído.</p>
+                    <input type="text" id="text-fixed-value-replace" class="w-full mt-2 p-2 border border-slate-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Digite o novo texto...">
                 </div>
             </label>
 
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
+            <label class="flex items-start gap-3 p-3 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
                 <input type="radio" name="action-value-type" value="append" class="text-purple-600 focus:ring-purple-500 mt-1">
                 <div class="flex-1">
-                    <span class="text-sm font-medium">Anexar ao final</span>
-                    <p class="text-xs text-slate-500">O texto será adicionado no final do conteúdo existente, com um espaço.</p>
-                    <input type="text" id="text-fixed-value-append" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="Digite o texto para anexar...">
+                    <span class="text-sm font-medium text-slate-800">Anexar ao final</span>
+                    <p class="text-xs text-slate-500 mt-0.5">O texto será adicionado no final do conteúdo existente.</p>
+                    <input type="text" id="text-fixed-value-append" class="w-full mt-2 p-2 border border-slate-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Digite o texto para anexar...">
                 </div>
             </label>
 
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
+            <label class="flex items-start gap-3 p-3 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
                 <input type="radio" name="action-value-type" value="prepend" class="text-purple-600 focus:ring-purple-500 mt-1">
                 <div class="flex-1">
-                    <span class="text-sm font-medium">Inserir no início</span>
-                    <p class="text-xs text-slate-500">O texto será adicionado no início do conteúdo existente, com um espaço.</p>
-                    <input type="text" id="text-fixed-value-prepend" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="Digite o texto para inserir...">
+                    <span class="text-sm font-medium text-slate-800">Inserir no início</span>
+                    <p class="text-xs text-slate-500 mt-0.5">O texto será adicionado no início do conteúdo existente.</p>
+                    <input type="text" id="text-fixed-value-prepend" class="w-full mt-2 p-2 border border-slate-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Digite o texto para inserir...">
                 </div>
             </label>
 
-            <label class="flex items-center gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="clear" class="text-purple-600 focus:ring-purple-500">
+            <label class="flex items-start gap-3 p-3 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
+                <input type="radio" name="action-value-type" value="clear" class="text-purple-600 focus:ring-purple-500 mt-1">
                 <div class="flex-1">
-                    <span class="text-sm font-medium">Limpar Conteúdo</span>
-                    <p class="text-xs text-slate-500">O campo será definido como vazio/nulo.</p>
+                    <span class="text-sm font-medium text-slate-800">Limpar Conteúdo</span>
+                    <p class="text-xs text-slate-500 mt-0.5">O valor do campo será apagado permanentemente.</p>
                 </div>
             </label>
-            
-            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                <div class="text-sm font-medium text-indigo-800 mb-2">Valores dinâmicos:</div>
-                <div class="space-y-1">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-user-name" class="text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-sm">Nome do Usuário Atual</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-user-email" class="text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-sm">Email do Usuário Atual</span>
-                    </label>
-                </div>
-            </div>
         </div>
     `;
 }
-
 /**
  * Gera opções de valor para campos numéricos
  */
@@ -2957,7 +2942,8 @@ function collectCurrentActionData() {
     // Coleta o valor baseado no tipo de ação selecionada
     if (data.valueType) {
         const propertyType = data.propertyInfo?.type;
-        // Lógica para campos de texto
+
+        // Lógica específica para campos de texto
         if (['text', 'textarea', 'email'].includes(propertyType)) {
             switch (data.valueType) {
                 case 'replace':
@@ -2969,10 +2955,10 @@ function collectCurrentActionData() {
                 case 'prepend':
                     data.value = document.getElementById('text-fixed-value-prepend')?.value || '';
                     break;
-                // Para 'clear', 'dynamic-user-name', etc., o próprio 'valueType' já define a ação.
+                // Para 'clear' e outros, não precisamos de um valor de input de texto.
             }
         } else {
-             // Lógica existente para outros tipos de campo (número, data, etc.)
+             // Lógica para outros tipos de campo (número, data, etc.)
             switch (data.valueType) {
                 case 'fixed':
                     const fixedInput = document.querySelector('#number-fixed-value, #date-fixed-value, #generic-fixed-value');
@@ -2984,7 +2970,7 @@ function collectCurrentActionData() {
                 case 'decrement':
                     data.decrementValue = document.getElementById('number-decrement-value')?.value || '1';
                     break;
-                // Adicione outros casos conforme necessário
+                // Adicione outros casos aqui conforme necessário.
             }
         }
     }
@@ -2993,7 +2979,6 @@ function collectCurrentActionData() {
     console.log('[collectCurrentActionData] Dados coletados:', data);
     return data;
 }
-
 function validateActionData(actionData) {
     const errors = [];
     
