@@ -65,8 +65,8 @@ class DarkModeManager {
 
     createHeaderSelector() {
         // Adiciona o seletor ao menu dropdown do usuário no index.html
-        const userMenuDropdown = document.getElementById('user-menu-dropdown');
-        if (userMenuDropdown) {
+        const settingsMenuDropdown = document.getElementById('settings-menu-dropdown'); // Alterado aqui
+        if (settingsMenuDropdown) {
             // Cria o elemento de seletor de tema
             const themeSelector = document.createElement('div');
             themeSelector.className = 'flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300';
@@ -82,11 +82,11 @@ class DarkModeManager {
             `;
 
             // Insere antes do último hr (antes do logout)
-            const lastHr = userMenuDropdown.querySelector('hr:last-of-type');
+            const lastHr = settingsMenuDropdown.querySelector('hr:last-of-type');
             if (lastHr) {
-                userMenuDropdown.insertBefore(themeSelector, lastHr);
+                settingsMenuDropdown.insertBefore(themeSelector, lastHr);
             } else {
-                userMenuDropdown.appendChild(themeSelector);
+                settingsMenuDropdown.appendChild(themeSelector);
             }
 
             // Adiciona event listener

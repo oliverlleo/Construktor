@@ -10,7 +10,8 @@ import { showSuccess, showError, showLoading, hideLoading } from '../ui.js';
 let db;
 let storage;
 let auth;
-let userMenuActive = false;
+let settingsMenuActive = false;
+let construktorMenuActive = false;
 
 /**
  * Inicializa o módulo de perfil do usuário
@@ -22,68 +23,56 @@ export function initUserProfile(database) {
     auth = firebase.auth();
     storage = firebase.storage();
     
-    setupUserMenu();
+    setupConstruktorMenu();
+    setupSettingsMenu();
     setupProfileModal();
     loadUserProfileData();
 }
 
 /**
- * Configura o menu do usuário
+ * Configura o menu de Configurações (engrenagem)
  */
-function setupUserMenu() {
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+function setupSettingsMenu() {
+    const settingsMenuButton = document.getElementById('settings-menu-button');
+    const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
+
+    if (!settingsMenuButton || !settingsMenuDropdown) {
+        console.error('Elementos do menu de configurações não encontrados!');
+        return;
+    }
     
     // Mostra/Esconde o menu ao clicar no botão
-    userMenuButton.addEventListener('click', () => {
-        userMenuDropdown.classList.toggle('hidden');
-        userMenuActive = !userMenuActive;
-        
-        // Atualiza o ícone de chevron
-        const chevronIcon = userMenuButton.querySelector('[data-lucide="chevron-down"]');
-        if (chevronIcon) {
-            chevronIcon.setAttribute('data-lucide', userMenuActive ? 'chevron-up' : 'chevron-down');
-            const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-            if (window.lucide && iconsToUpdate) {
-                lucide.createIcons({
-                    icons: iconsToUpdate
-                });
-            }
-        }
+    settingsMenuButton.addEventListener('click', () => {
+        settingsMenuDropdown.classList.toggle('hidden');
+        settingsMenuActive = !settingsMenuDropdown.classList.contains('hidden');
     });
     
     // Fecha o menu ao clicar fora dele
     document.addEventListener('click', (event) => {
-        if (!userMenuButton.contains(event.target) && !userMenuDropdown.contains(event.target)) {
-            if (!userMenuDropdown.classList.contains('hidden')) {
-                userMenuDropdown.classList.add('hidden');
-                userMenuActive = false;
-                
-                // Atualiza o ícone de chevron
-                const chevronIcon = userMenuButton.querySelector('[data-lucide]');
-                if (chevronIcon) {
-                    chevronIcon.setAttribute('data-lucide', 'chevron-down');
-                    const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-                    if (window.lucide && iconsToUpdate) {
-                        lucide.createIcons({
-                            icons: iconsToUpdate
-                        });
-                    }
-                }
+        if (!settingsMenuButton.contains(event.target) && !settingsMenuDropdown.contains(event.target)) {
+            if (!settingsMenuDropdown.classList.contains('hidden')) {
+                settingsMenuDropdown.classList.add('hidden');
+                settingsMenuActive = false;
             }
         }
     });
     
     // Configura o botão de editar perfil
-    document.getElementById('edit-profile-button').addEventListener('click', () => {
-        userMenuDropdown.classList.add('hidden');
-        userMenuActive = false;
-        openProfileModal();
-    });
+    const editProfileButton = document.getElementById('edit-profile-button');
+    if (editProfileButton) {
+        editProfileButton.addEventListener('click', () => {
+            settingsMenuDropdown.classList.add('hidden');
+            settingsMenuActive = false;
+            openProfileModal();
+        });
+    }
     
     // Configura o botão de logout
-    document.getElementById('logout-button').addEventListener('click', async () => {
-        userMenuDropdown.classList.add('hidden');
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            if (settingsMenuDropdown) settingsMenuDropdown.classList.add('hidden');
+            settingsMenuActive = false;
         const result = await logout();
         if (result.success) {
             // O redirecionamento será tratado pelo módulo de autenticação
@@ -91,6 +80,55 @@ function setupUserMenu() {
             showError('Erro ao sair', result.error);
         }
     });
+}
+
+/**
+ * Configura o menu Construktor
+ */
+function setupConstruktorMenu() {
+    const construktorMenuButton = document.getElementById('construktor-menu-button');
+    const construktorMenuDropdown = document.getElementById('construktor-menu-dropdown');
+
+    if (!construktorMenuButton || !construktorMenuDropdown) {
+        console.error('Elementos do menu Construktor não encontrados!');
+        return;
+    }
+
+    // Mostra/Esconde o menu ao clicar no botão
+    construktorMenuButton.addEventListener('click', () => {
+        construktorMenuDropdown.classList.toggle('hidden');
+        construktorMenuActive = !construktorMenuDropdown.classList.contains('hidden');
+
+        // Atualiza o ícone de chevron
+        const chevronIcon = construktorMenuButton.querySelector('[data-lucide="chevron-down"], [data-lucide="chevron-up"]');
+        if (chevronIcon) {
+            chevronIcon.setAttribute('data-lucide', construktorMenuActive ? 'chevron-up' : 'chevron-down');
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+    });
+
+    // Fecha o menu ao clicar fora dele
+    document.addEventListener('click', (event) => {
+        if (!construktorMenuButton.contains(event.target) && !construktorMenuDropdown.contains(event.target)) {
+            if (!construktorMenuDropdown.classList.contains('hidden')) {
+                construktorMenuDropdown.classList.add('hidden');
+                construktorMenuActive = false;
+
+                // Atualiza o ícone de chevron
+                const chevronIcon = construktorMenuButton.querySelector('[data-lucide="chevron-down"], [data-lucide="chevron-up"]');
+                if (chevronIcon) {
+                    chevronIcon.setAttribute('data-lucide', 'chevron-down');
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                }
+            }
+        }
+    });
+
+    // Adicionar aqui event listeners para os itens do menu Construktor se necessário no futuro
 }
 
 /**
