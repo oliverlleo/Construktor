@@ -2420,491 +2420,6 @@ function generateTextFieldValueOptions() {
         </div>
     `;
 }
-/**
- * Gera opções de valor para campos numéricos
- */
-function generateNumberFieldValueOptions() {
-    return `
-        <div class="space-y-3">
-            <div class="text-sm font-medium text-purple-800 mb-2">Opções para Número:</div>
-            
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="fixed" class="text-purple-600 focus:ring-purple-500 mt-1" checked>
-                <div class="flex-1">
-                    <span class="text-sm font-medium">Definir como valor fixo</span>
-                    <input type="number" id="number-fixed-value" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="Digite o número...">
-                </div>
-            </label>
-            
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="increment" class="text-purple-600 focus:ring-purple-500 mt-1">
-                <div class="flex-1">
-                    <span class="text-sm font-medium">Incrementar em</span>
-                    <input type="number" id="number-increment-value" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="1" value="1" min="1">
-                </div>
-            </label>
-            
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="decrement" class="text-purple-600 focus:ring-purple-500 mt-1">
-                <div class="flex-1">
-                    <span class="text-sm font-medium">Decrementar em</span>
-                    <input type="number" id="number-decrement-value" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm" placeholder="1" value="1" min="1">
-                </div>
-            </label>
-            
-            <label class="flex items-center gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="clear" class="text-purple-600 focus:ring-purple-500">
-                <span class="text-sm font-medium">Limpar valor</span>
-            </label>
-        </div>
-    `;
-}
-
-/**
- * Gera opções de valor para campos de data
- */
-function generateDateFieldValueOptions() {
-    return `
-        <div class="space-y-3">
-            <div class="text-sm font-medium text-purple-800 mb-2">Opções para Data:</div>
-            
-            <label class="flex items-start gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="fixed" class="text-purple-600 focus:ring-purple-500 mt-1" checked>
-                <div class="flex-1">
-                    <span class="text-sm font-medium">Definir como data fixa</span>
-                    <input type="date" id="date-fixed-value" class="w-full mt-1 p-2 border border-slate-300 rounded text-sm">
-                </div>
-            </label>
-            
-            <label class="flex items-center gap-2 p-2 rounded-lg border border-purple-200 hover:bg-purple-50 cursor-pointer">
-                <input type="radio" name="action-value-type" value="clear" class="text-purple-600 focus:ring-purple-500">
-                <span class="text-sm font-medium">Limpar valor</span>
-            </label>
-            
-            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                <div class="text-sm font-medium text-indigo-800 mb-2">Valores dinâmicos:</div>
-                <div class="space-y-1">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-today" class="text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-sm">Data de Hoje</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-now" class="text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-sm">Agora (Data e Hora)</span>
-                    </label>
-                </div>
-                
-                <div class="mt-3 grid grid-cols-2 gap-2">
-                    <label class="flex items-start gap-1 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-future" class="text-indigo-600 focus:ring-indigo-500 mt-1">
-                        <div class="flex-1">
-                            <div class="text-sm">Daqui a...</div>
-                            <div class="flex gap-1 mt-1">
-                                <input type="number" id="date-future-amount" class="flex-1 p-1 border border-slate-300 rounded text-xs" placeholder="1" min="1">
-                                <select id="date-future-unit" class="flex-1 p-1 border border-slate-300 rounded text-xs">
-                                    <option value="days">Dias</option>
-                                    <option value="weeks">Semanas</option>
-                                    <option value="months">Meses</option>
-                                </select>
-                            </div>
-                        </div>
-                    </label>
-                    
-                    <label class="flex items-start gap-1 cursor-pointer">
-                        <input type="radio" name="action-value-type" value="dynamic-past" class="text-indigo-600 focus:ring-indigo-500 mt-1">
-                        <div class="flex-1">
-                            <div class="text-sm">... atrás</div>
-                            <div class="flex gap-1 mt-1">
-                                <input type="number" id="date-past-amount" class="flex-1 p-1 border border-slate-300 rounded text-xs" placeholder="1" min="1">
-                                <select id="date-past-unit" class="flex-1 p-1 border border-slate-300 rounded text-xs">
-                                    <option value="days">Dias</option>
-                                    <option value="weeks">Semanas</option>
-                                    <option value="months">Meses</option>
-                                </select>
-                            </div>
-                        </div>
-                    </label>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-
-
-/**
- * Manipula mudança no tipo de ação
- */
-function handleActionTypeChange() {
-    const actionType = document.getElementById('action-type-select').value;
-    const incrementSection = document.getElementById('increment-value-section');
-    const valueConfigSection = document.getElementById('value-configuration');
-    
-    // Mostra/esconde seções baseado no tipo de ação
-    if (['increment', 'decrement'].includes(actionType)) {
-        incrementSection.classList.remove('hidden');
-        // Para ações de incremento/decremento, o valor fixo e dinâmico são opcionais
-    } else if (actionType === 'clear' || actionType === 'toggle') {
-        incrementSection.classList.add('hidden');
-        // Para limpar ou alternar, não precisa de valor
-        valueConfigSection.style.opacity = '0.5';
-    } else {
-        incrementSection.classList.add('hidden');
-        valueConfigSection.style.opacity = '1';
-    }
-    
-    updateActionPreview();
-    updateContextualHelp();
-}
-
-/**
- * Manipula mudança no tipo de valor
- */
-function handleValueTypeChange() {
-    const valueType = document.querySelector('input[name="value-type"]:checked').value;
-    const fixedInput = document.getElementById('fixed-value-input');
-    const dynamicSelect = document.getElementById('dynamic-value-select');
-    
-    if (valueType === 'fixed') {
-        fixedInput.disabled = false;
-        dynamicSelect.disabled = true;
-    } else {
-        fixedInput.disabled = true;
-        dynamicSelect.disabled = false;
-    }
-    
-    updateActionPreview();
-}
-
-/**
- * Popula o select de módulos
- */
-function populateModulesSelect() {
-    const moduleSelect = document.getElementById('target-module-select');
-    moduleSelect.innerHTML = '<option value="">Selecione um módulo...</option>';
-    
-    // Aqui você pegaria os módulos do estado da aplicação
-    // Por simplicidade, vamos usar módulos ficticios
-    const modules = [
-        { id: 'mod1', name: 'Vendas' },
-        { id: 'mod2', name: 'Projetos' },
-        { id: 'mod3', name: 'Recursos Humanos' }
-    ];
-    
-    modules.forEach(module => {
-        const option = document.createElement('option');
-        option.value = module.id;
-        option.textContent = module.name;
-        moduleSelect.appendChild(option);
-    });
-}
-
-/**
- * Popula o select de entidades baseado no módulo
- */
-function populateEntitiesSelect(moduleId) {
-    const entitySelect = document.getElementById('target-entity-select');
-    
-    // Aqui você pegaria as entidades do módulo selecionado
-    const entities = [
-        { id: 'ent1', name: 'Clientes' },
-        { id: 'ent2', name: 'Pedidos' },
-        { id: 'ent3', name: 'Produtos' }
-    ];
-    
-    entities.forEach(entity => {
-        const option = document.createElement('option');
-        option.value = entity.id;
-        option.textContent = entity.name;
-        entitySelect.appendChild(option);
-    });
-}
-
-/**
- * Popula o select de propriedades baseado no alvo
- */
-function populatePropertiesSelect() {
-    const propertySelect = document.getElementById('action-property-select');
-    const target = document.querySelector('input[name="action-target"]:checked').value;
-    
-    propertySelect.innerHTML = '<option value="">Selecione uma propriedade...</option>';
-    
-    // Propriedades de exemplo baseadas no tipo de campo
-    const properties = [
-        { id: 'status', name: 'Status', type: 'select' },
-        { id: 'title', name: 'Título', type: 'text' },
-        { id: 'completed', name: 'Concluído', type: 'checkbox' },
-        { id: 'progress', name: 'Progresso', type: 'number' },
-        { id: 'due_date', name: 'Data de Vencimento', type: 'date' },
-        { id: 'assigned_to', name: 'Atribuído a', type: 'person' }
-    ];
-    
-    properties.forEach(property => {
-        const option = document.createElement('option');
-        option.value = property.id;
-        option.textContent = `${property.name} (${property.type})`;
-        option.dataset.propertyType = property.type;
-        propertySelect.appendChild(option);
-    });
-}
-
-/**
- * Atualiza o preview da ação atual
- */
-function updateActionPreview() {
-    const preview = document.getElementById('action-preview');
-    if (!preview) {
-        console.warn('[updateActionPreview] Elemento de preview não encontrado');
-        return;
-    }
-    
-    // Verifica se a função collectCurrentActionData existe
-    if (typeof collectCurrentActionData !== 'function') {
-        preview.innerHTML = `
-            <div class="text-center text-slate-400 py-6">
-                <p class="text-sm">Erro: Função collectCurrentActionData não encontrada</p>
-            </div>
-        `;
-        return;
-    }
-    
-    try {
-        const actionData = collectCurrentActionData();
-        
-        if (!actionData || !actionData.target || !actionData.property) {
-            preview.innerHTML = `
-                <div class="text-center text-slate-400 py-6">
-                    <i data-lucide="wand-2" class="h-10 w-10 mx-auto mb-2"></i>
-                    <p class="text-sm">Configure os parâmetros para ver o preview</p>
-                </div>
-            `;
-            if (typeof createIcons === 'function') {
-                createIcons();
-            } else if (window.lucide) {
-                lucide.createIcons();
-            }
-            return;
-        }
-        
-        // Verifica se a função generateAdvancedActionSummary existe
-        if (typeof generateAdvancedActionSummary !== 'function') {
-            preview.innerHTML = `
-                <div class="text-center text-slate-400 py-6">
-                    <p class="text-sm">Erro: Função generateAdvancedActionSummary não encontrada</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const summary = generateAdvancedActionSummary(actionData);
-        
-        preview.innerHTML = `
-            <div class="space-y-3">
-                <div class="flex items-center gap-2 text-green-600">
-                    <i data-lucide="check-circle" class="h-5 w-5"></i>
-                    <span class="font-medium">✅ Ação Válida</span>
-                </div>
-                
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-                    <div class="text-sm space-y-2">
-                        <div class="flex items-start gap-2">
-                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium min-w-fit">ONDE</span>
-                            <span class="text-slate-700">${summary.where || 'Não definido'}</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium min-w-fit">O QUÊ</span>
-                            <span class="text-slate-700">${summary.what || 'Não definido'}</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium min-w-fit">VALOR</span>
-                            <span class="text-slate-700">${summary.value || 'Não definido'}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p class="text-xs text-blue-700">
-                        <i data-lucide="zap" class="h-3 w-3 inline mr-1"></i>
-                        <strong>Execução:</strong> ${summary.execution || 'Não definido'}
-                    </p>
-                </div>
-            </div>
-        `;
-        
-        if (typeof createIcons === 'function') {
-            createIcons();
-        } else if (window.lucide) {
-            lucide.createIcons();
-        }
-    } catch (error) {
-        console.error('[updateActionPreview] Erro:', error);
-        preview.innerHTML = `
-            <div class="text-center text-slate-400 py-6">
-                <p class="text-sm">Erro ao atualizar preview: ${error.message}</p>
-            </div>
-        `;
-    }
-}
-
-/**
- * Atualiza o preview da receita completa
- */
-function updateRecipePreview() {
-    const recipePreview = document.getElementById('recipe-preview');
-    const actionsCount = document.getElementById('actions-count');
-    
-    if (!recipePreview || !actionsCount) {
-        console.warn('[updateRecipePreview] Elementos de preview não encontrados');
-        return;
-    }
-    
-    // Verifica se a função getCurrentButtonActions existe
-    if (typeof getCurrentButtonActions !== 'function') {
-        recipePreview.innerHTML = `
-            <div class="text-center text-slate-400 py-8">
-                <p class="text-sm">Erro: Função getCurrentButtonActions não encontrada</p>
-            </div>
-        `;
-        return;
-    }
-    
-    try {
-        const currentActions = getCurrentButtonActions();
-        
-        actionsCount.textContent = `${currentActions.length} ação${currentActions.length !== 1 ? 'ões' : ''}`;
-        
-        if (currentActions.length === 0) {
-            recipePreview.innerHTML = `
-                <div class="text-center text-slate-400 py-8">
-                    <i data-lucide="chef-hat" class="h-12 w-12 mx-auto mb-3"></i>
-                    <p class="text-sm">Sua receita aparecerá aqui conforme você adiciona ações</p>
-                    <p class="text-xs text-slate-500 mt-1">Cada ação será um passo da receita</p>
-                </div>
-            `;
-            if (typeof createIcons === 'function') {
-                createIcons();
-            } else if (window.lucide) {
-                lucide.createIcons();
-            }
-            return;
-        }
-        
-        const recipeHtml = currentActions.map((action, index) => {
-            const summary = generateAdvancedActionSummary(action);
-            return `
-                <div class="recipe-step bg-white border border-slate-200 rounded-lg p-3 mb-2">
-                    <div class="flex items-start gap-3">
-                        <div class="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                            ${index + 1}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-sm space-y-1">
-                                <div class="font-medium text-slate-800">${summary.title}</div>
-                                <div class="text-slate-600">${summary.description}</div>
-                            </div>
-                        </div>
-                        <div class="flex gap-1 flex-shrink-0">
-                            <button class="edit-recipe-action text-blue-600 hover:text-blue-700 p-1" data-action-index="${index}" title="Editar">
-                                <i data-lucide="edit-3" class="h-4 w-4"></i>
-                            </button>
-                            <button class="delete-recipe-action text-slate-500 hover:text-red-500 p-1" data-action-index="${index}" title="Remover">
-                                <i data-lucide="trash-2" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        recipePreview.innerHTML = `
-            <div class="recipe-steps">
-                ${recipeHtml}
-            </div>
-            <div class="text-center mt-4 pt-3 border-t border-slate-200">
-                <p class="text-xs text-slate-500">
-                    <i data-lucide="info" class="h-3 w-3 inline mr-1"></i>
-                    As ações serão executadas na ordem mostrada acima
-                </p>
-            </div>
-        `;
-        
-        // Adiciona event listeners para os botões
-        recipePreview.querySelectorAll('.edit-recipe-action').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.currentTarget.dataset.actionIndex);
-                editButtonAction(index, currentActions[index]);
-            });
-        });
-        
-        recipePreview.querySelectorAll('.delete-recipe-action').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.currentTarget.dataset.actionIndex);
-                deleteButtonAction(index);
-            });
-        });
-        
-        if (typeof createIcons === 'function') {
-            createIcons();
-        } else if (window.lucide) {
-            lucide.createIcons();
-        }
-        
-    } catch (error) {
-        console.error('[updateRecipePreview] Erro:', error);
-        recipePreview.innerHTML = `
-            <div class="text-center text-slate-400 py-8">
-                <p class="text-sm">Erro ao atualizar preview da receita: ${error.message}</p>
-            </div>
-        `;
-    }
-}
-
-/**
- * Gera um resumo legível da ação
- */
-function generateActionSummary(actionData) {
-    const whereText = actionData.target === 'current' ? 
-        'Neste mesmo registo' : 
-        `Na entidade "${actionData.targetEntity}" do módulo "${actionData.targetModule}"`;
-    
-    const propertyOption = document.querySelector(`#action-property-select option[value="${actionData.property}"]`);
-    const whatText = propertyOption ? propertyOption.textContent : actionData.property;
-    
-    const howText = {
-        'set': 'Definir valor',
-        'clear': 'Limpar valor',
-        'increment': 'Incrementar',
-        'decrement': 'Decrementar',
-        'toggle': 'Alternar valor',
-        'append': 'Adicionar ao final'
-    }[actionData.actionType] || actionData.actionType;
-    
-    let valueText = 'N/A';
-    if (actionData.actionType === 'clear' || actionData.actionType === 'toggle') {
-        valueText = 'Não aplicável';
-    } else if (actionData.valueType === 'fixed') {
-        valueText = `"${actionData.value || '(vazio)'}"`;
-    } else if (actionData.valueType === 'dynamic') {
-        const dynamicOptions = {
-            'current_user_name': 'Nome do Usuário Atual',
-            'current_user_email': 'Email do Usuário Atual',
-            'current_date': 'Data de Hoje',
-            'current_datetime': 'Data e Hora Atuais',
-            'current_timestamp': 'Timestamp Atual'
-        };
-        valueText = dynamicOptions[actionData.dynamicValue] || actionData.dynamicValue;
-    } else if (['increment', 'decrement'].includes(actionData.actionType)) {
-        valueText = `${actionData.actionType === 'increment' ? '+' : '-'}${actionData.incrementValue || 1}`;
-    }
-    
-    return {
-        where: whereText,
-        what: whatText,
-        how: howText,
-        value: valueText
-    };
-}
-
 
 
 /**
@@ -2970,7 +2485,6 @@ function collectCurrentActionData() {
                 case 'decrement':
                     data.decrementValue = document.getElementById('number-decrement-value')?.value || '1';
                     break;
-                // Adicione outros casos aqui conforme necessário.
             }
         }
     }
@@ -2979,308 +2493,57 @@ function collectCurrentActionData() {
     console.log('[collectCurrentActionData] Dados coletados:', data);
     return data;
 }
-function validateActionData(actionData) {
-    const errors = [];
-    
-    console.log('[validateActionData] Validando dados:', actionData);
-    
-    // Validação do ONDE (alvo)
-    if (!actionData.target) {
-        errors.push('Selecione ONDE aplicar a ação (neste registo ou em outra entidade).');
-    } else if (actionData.target === 'other') {
-        if (!actionData.targetModules || actionData.targetModules.length === 0) {
-            errors.push('Selecione pelo menos um módulo de destino.');
-        }
-        if (!actionData.targetEntity || !actionData.targetEntity.id) {
-            errors.push('Selecione a entidade de destino.');
-        }
-    }
-    
-    // Validação do O QUÊ (propriedade)
-    if (!actionData.property) {
-        errors.push('Selecione O QUÊ modificar (qual propriedade).');
-    }
-    
-    // Validação do PARA QUÊ (valor)
-    if (!actionData.valueType) {
-        errors.push('Selecione PARA QUÊ valor modificar.');
-    } else {
-        // Validações específicas por tipo de valor
-        switch (actionData.valueType) {
-            case 'fixed':
-                if (!actionData.value && actionData.value !== 0) {
-                    errors.push('Digite um valor fixo.');
-                }
-                break;
-                
-            case 'increment':
-                if (!actionData.incrementValue || parseInt(actionData.incrementValue) <= 0) {
-                    errors.push('Digite um valor válido para incrementar.');
-                }
-                break;
-                
-            case 'decrement':
-                if (!actionData.decrementValue || parseInt(actionData.decrementValue) <= 0) {
-                    errors.push('Digite um valor válido para decrementar.');
-                }
-                break;
-                
-            case 'select-option':
-                if (!actionData.selectValue || !actionData.selectValue.id) {
-                    errors.push('Selecione uma opção da lista.');
-                }
-                break;
-                
-            case 'dynamic-future':
-                if (!actionData.futureOffset || !actionData.futureOffset.amount || parseInt(actionData.futureOffset.amount) <= 0) {
-                    errors.push('Digite um valor válido para data futura.');
-                }
-                break;
-                
-            case 'dynamic-past':
-                if (!actionData.pastOffset || !actionData.pastOffset.amount || parseInt(actionData.pastOffset.amount) <= 0) {
-                    errors.push('Digite um valor válido para data passada.');
-                }
-                break;
-        }
-    }
-    
-    console.log('[validateActionData] Resultado da validação:', { errors });
-    return errors;
-}
 
-function saveActionFromBuilder() {
-    const actionData = collectCurrentActionData();
-    const errors = validateActionData(actionData);
-    
-    if (errors.length > 0) {
-        showError('Configuração Incompleta', errors.join('<br>'));
-        return;
-    }
-    
-    const modal = document.getElementById('button-action-builder-modal');
-    const isEditing = modal.dataset.isEditing === 'true';
-    const editingIndex = parseInt(modal.dataset.editingIndex);
-    
-    if (isEditing && !isNaN(editingIndex)) {
-        updateButtonAction(editingIndex, actionData);
-        showSuccess('Ação Atualizada! ✅', 'As alterações foram salvas na receita do botão.');
-    } else {
-        addButtonAction(actionData);
-        const totalActions = getCurrentButtonActions().length;
-        showSuccess('Ação Adicionada! 🎉', `Agora sua receita tem ${totalActions} passo${totalActions !== 1 ? 's' : ''}.`);
-    }
-    
-    closeActionBuilder();
-    console.log('[saveActionFromBuilder] Receita atual do botão:', getCurrentButtonActions());
-}
-
-/**
- * Fecha o construtor de ações
- */
-function closeActionBuilder() {
-    const modal = document.getElementById('button-action-builder-modal');
-    modal.classList.add('hidden');
-    
-    // Limpa os dados do modal
-    resetActionBuilder();
-}
-
-/**
- * Reseta o construtor de ações
- */
-function resetActionBuilder() {
-    // Reseta todos os campos para seus valores padrão
-    document.querySelector('input[name="action-target"][value="current"]').checked = true;
-    document.getElementById('other-target-details').classList.add('hidden');
-    
-    // Verifica se os elementos existem antes de modificá-los
-    const targetEntitySelect = document.getElementById('target-entity-select');
-    if (targetEntitySelect) {
-        targetEntitySelect.innerHTML = '<option value="">Primeiro selecione os módulos...</option>';
-    }
-    
-    const actionPropertySelect = document.getElementById('action-property-select');
-    if (actionPropertySelect) {
-        actionPropertySelect.innerHTML = '<option value="">Selecione uma propriedade...</option>';
-    }
-    
-    // Elemento 'action-type-select' não existe no HTML atual
-    // Removendo essa linha para evitar erro
-    // document.getElementById('action-type-select').value = 'set';
-    
-    // Verificar se esses elementos existem
-    const fixedValueTypeRadio = document.querySelector('input[name="value-type"][value="fixed"]');
-    if (fixedValueTypeRadio) {
-        fixedValueTypeRadio.checked = true;
-    }
-    
-    const fixedValueInput = document.getElementById('fixed-value-input');
-    if (fixedValueInput) {
-        fixedValueInput.value = '';
-        fixedValueInput.disabled = false;
-    }
-    
-    const dynamicValueSelect = document.getElementById('dynamic-value-select');
-    if (dynamicValueSelect) {
-        dynamicValueSelect.value = 'current_user_name';
-        dynamicValueSelect.disabled = true;
-    }
-    
-    const incrementValueInput = document.getElementById('increment-value-input');
-    if (incrementValueInput) {
-        incrementValueInput.value = '1';
-    }
-    
-    const incrementValueSection = document.getElementById('increment-value-section');
-    if (incrementValueSection) {
-        incrementValueSection.classList.add('hidden');
-    }
-    
-    // Chama estas funções se existirem
-    if (typeof updateActionPreview === 'function') {
-        updateActionPreview();
-    }
-    
-    if (typeof updateContextualHelp === 'function') {
-        updateContextualHelp();
-    }
-}
-
-/**
- * Popula o construtor com dados existentes (para edição)
- */
-async function populateActionBuilderWithExistingData(actionData) {
-    if (actionData.target) {
-        document.querySelector(`input[name="action-target"][value="${actionData.target}"]`).checked = true;
-        await handleTargetChange();
-    }
-    
-    if (actionData.targetModule) {
-        populateModulesSelect();
-        document.getElementById('target-module-select').value = actionData.targetModule;
-        // handleModuleChange não existe mais - usar await handleModuleSelectionChange()
-    }
-    
-    if (actionData.targetEntity) {
-        document.getElementById('target-entity-select').value = actionData.targetEntity;
-        await handleEntityChange();
-    }
-    
-    if (actionData.property) {
-        document.getElementById('action-property-select').value = actionData.property;
-    }
-    
-    if (actionData.actionType) {
-        document.getElementById('action-type-select').value = actionData.actionType;
-        handleActionTypeChange();
-    }
-    
-    if (actionData.valueType) {
-        document.querySelector(`input[name="value-type"][value="${actionData.valueType}"]`).checked = true;
-        handleValueTypeChange();
-    }
-    
-    if (actionData.value) {
-        document.getElementById('fixed-value-input').value = actionData.value;
-    }
-    
-    if (actionData.dynamicValue) {
-        document.getElementById('dynamic-value-select').value = actionData.dynamicValue;
-    }
-    
-    if (actionData.incrementValue) {
-        document.getElementById('increment-value-input').value = actionData.incrementValue;
-    }
-    
-    // Atualiza o preview
-    updateActionPreview();
-}
-
-/**
- * Adiciona uma nova ação ao botão
- */
-function addButtonAction(actionData) {
-    const container = document.getElementById('button-actions-container');
-    const noActionsMessage = document.getElementById('no-actions-message');
-    
-    // Remove mensagem de "sem ações" se existir
-    if (noActionsMessage && container.contains(noActionsMessage)) {
-        noActionsMessage.remove();
-    }
-    
-    // Obtém ações atuais
-    const currentActions = getCurrentButtonActions();
-    currentActions.push(actionData);
-    
-    // Re-renderiza todas as ações
-    setupButtonActions(currentActions);
-    
-    showSuccess('Ação adicionada!', 'A ação foi configurada com sucesso.');
-}
-
-/**
- * Edita uma ação existente
- */
-async function editButtonAction(index, currentAction) {
-    await openButtonActionBuilder(index, currentAction);
-}
-
-/**
- * Atualiza uma ação existente
- */
-function updateButtonAction(index, newActionData) {
-    const currentActions = getCurrentButtonActions();
-    currentActions[index] = newActionData;
-    
-    setupButtonActions(currentActions);
-    showSuccess('Ação atualizada!', 'As alterações foram salvas.');
-}
-
-/**
- * Remove uma ação
- */
-function deleteButtonAction(index) {
-    showConfirmDialog(
-        'Remover Ação?',
-        'Esta ação será removida permanentemente do botão.',
-        'Sim, remover',
-        'Cancelar',
-        'warning'
-    ).then(confirmed => {
-        if (confirmed) {
-            const currentActions = getCurrentButtonActions();
-            currentActions.splice(index, 1);
-            
-            setupButtonActions(currentActions);
-            showSuccess('Ação removida!', 'A ação foi removida do botão.');
-        }
-    });
-}
-
-/**
- * Obtém a lista atual de ações do botão
- */
-function getCurrentButtonActions() {
-    const container = document.getElementById('button-actions-container');
-    const actionElements = container.querySelectorAll('.button-action-item');
-    
-    // Por simplicidade, vamos manter as ações em uma variável global ou no DOM
-    // Em uma implementação real, isso seria parte do estado do componente
-    if (!window.currentButtonActions) {
-        window.currentButtonActions = [];
-    }
-    
-    return window.currentButtonActions;
-}
 
 /**
  * Gera um resumo legível da ação
  */
 function generateAdvancedActionSummary(actionData) {
-    let where = '', what = '', value = '', title = '', description = '', execution = '';
+    let where = '';
+    let what = '';
+    let value = '';
+    let title = '';
+    let description = '';
+    let execution = '';
+
+    // Determina ONDE
+    if (actionData.target === 'current') {
+        where = 'Neste registo (mesmo item onde o botão foi clicado)';
+        execution = 'Ação será aplicada ao item atual';
+    } else if (actionData.target === 'other') {
+        if (actionData.targetModules && actionData.targetModules.length > 0) {
+            const moduleNames = actionData.targetModules.map(m => m.name).join(', ');
+            const entityName = actionData.targetEntity?.name || 'Entidade selecionada';
+            where = `Em "${entityName}" dos módulos: ${moduleNames}`;
+            execution = `Ação será aplicada a TODOS os registos de "${entityName}"`;
+        } else {
+            const selectedModules = Array.from(document.querySelectorAll('input[name="selected-modules"]:checked'))
+                .map(cb => cb.nextElementSibling.textContent);
+            const entitySelect = document.getElementById('target-entity-select');
+            const entityName = entitySelect.selectedOptions[0]?.textContent || 'Entidade selecionada';
+
+            if (selectedModules.length > 0) {
+                where = `Em "${entityName}" dos módulos: ${selectedModules.join(', ')}`;
+                execution = `Ação será aplicada a TODOS os registos de "${entityName}"`;
+            } else {
+                where = 'Outra entidade (módulos não selecionados)';
+                execution = 'Configuração incompleta';
+            }
+        }
+    }
     
-    // ... (lógica existente para 'where' e 'what') ...
+    // Determina O QUÊ
+    if (actionData.propertyInfo) {
+        what = `Propriedade "${actionData.propertyInfo.label}"`;
+    } else {
+        const propertySelect = document.getElementById('action-property-select');
+        const selectedOption = propertySelect.selectedOptions[0];
+        if (selectedOption) {
+            what = `Propriedade "${selectedOption.textContent}"`;
+        } else {
+            what = 'Nenhuma propriedade selecionada';
+        }
+    }
 
     // Determina VALOR baseado no tipo de propriedade e ação
     const propertyType = actionData.propertyInfo?.type;
@@ -3321,12 +2584,18 @@ function generateAdvancedActionSummary(actionData) {
                 value = `Ação: ${actionData.valueType}`;
         }
     } else {
-        // ... (lógica existente para outros tipos de campo) ...
+        // Lógica para outros tipos de campos (número, data, etc.)
+        value = 'Lógica para este tipo de campo ainda não definida no resumo.';
     }
 
-    // ... (restante da função para gerar o resumo) ...
-
-    return { where, what, value, title, description, execution };
+    return {
+        where,
+        what,
+        value,
+        title,
+        description,
+        execution
+    };
 }
  * Atualiza ajuda contextual inteligente
  */
