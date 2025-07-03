@@ -1193,9 +1193,17 @@ pre {
 }
 
 /* Estilos para o Dropdown do Menu Principal */
+#construktor-menu-dropdown {
+    background-color: white; /* Define a cor de fundo para o modo claro */
+    border-color: #e2e8f0; /* Define a cor da borda para o modo claro */
+    /* Outros estilos de #construktor-menu-dropdown se houver, como padding, border-radius, etc. */
+}
+
 #construktor-menu-dropdown a {
     /* Estilos base para todos os links */
     transition: background-color 0.2s ease, color 0.2s ease;
+    /* Adicionar aqui a cor padrão para o modo claro */
+    color: #64748b; /* slate-600 */
 }
 
 #construktor-menu-dropdown a.active {
