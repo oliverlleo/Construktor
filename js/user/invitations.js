@@ -309,11 +309,12 @@ async function manageInvite(inviteId, action) {
             // }, { merge: true });
             
             if (inviteData.resourceType === 'workspace') {
-                batch.set(db.doc(`sharedWorkspaces/${inviteData.resourceId}`), {
-                    name: inviteData.resourceName,
-                    ownerId: inviteData.fromUserId,
-                    ownerName: inviteData.fromUserName
-                });
+                // REMOVER ESTA LINHA: O sharedWorkspaces é atualizado pela Cloud Function 'onInviteAccepted'.
+                // batch.set(db.doc(`sharedWorkspaces/${inviteData.resourceId}`), {
+                //     name: inviteData.resourceName,
+                //     ownerId: inviteData.fromUserId,
+                //     ownerName: inviteData.fromUserName
+                // });
             }
         } else if (action === 'revoke') {
             const invitedUserId = inviteData.toUserId;
