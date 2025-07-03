@@ -35,12 +35,7 @@ function setupInviteModal() {
     
     // Abrir o modal
     inviteUserButton.addEventListener('click', () => {
-        const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
-        if (settingsMenuDropdown) {
-            settingsMenuDropdown.classList.add('hidden');
-        }
-        // Consider resetting settingsMenuActive state here if not handled by userProfile.js
-        // For now, assuming the click-outside listener in userProfile.js handles the state.
+        document.getElementById('user-menu-dropdown').classList.add('hidden');
         inviteModal.classList.remove('hidden');
         setTimeout(() => {
             inviteModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
@@ -78,11 +73,7 @@ function setupManageInvitesModal() {
     
     // Abrir o modal
     manageInvitesButton.addEventListener('click', async () => {
-        const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
-        if (settingsMenuDropdown) {
-            settingsMenuDropdown.classList.add('hidden');
-        }
-        // Consider resetting settingsMenuActive state here if not handled by userProfile.js
+        document.getElementById('user-menu-dropdown').classList.add('hidden');
         manageInvitesModal.classList.remove('hidden');
         setTimeout(() => {
             manageInvitesModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
@@ -323,33 +314,31 @@ async function manageInvite(inviteId, action) {
  */
 async function updateUserPermission(inviteId, newRole) {
     showLoading('Atualizando permissão...');
-    const inviteRef = db.doc(`invitations/${inviteId}`);
-
     try {
-        const inviteDoc = await inviteRef.get();
-        if (!inviteDoc.exists) {
-            throw new Error("Convite não encontrado.");
-        }
+        const inviteSnapshot = await db.doc(`invitations/${inviteId}`).get();
+        if (!inviteSnapshot.exists) throw new Error("Convite não encontrado");
+        
+        const inviteData = inviteSnapshot.data();
+        if (inviteData.fromUserId !== getUsuarioId()) throw new Error("Apenas o dono do convite pode alterar a permissão.");
+        if (inviteData.status !== 'accepted') throw new Error("Só é possível alterar permissões de convites já aceitos.");
+        
+        const invitedUserId = inviteData.toUserId; // **CORREÇÃO CRÍTICA**: Usa o `toUserId` guardado
+        if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado. O convite pode não ter sido devidamente aceito.");
 
-        const inviteData = inviteDoc.data();
-        if (inviteData.fromUserId !== getUsuarioId()) {
-            throw new Error("Você não tem permissão para alterar este convite.");
-        }
-
-        // A única ação que o front-end precisa fazer é atualizar a role no convite.
-        // O Cloud Function existente no backend deve observar essa mudança e
-        // atualizar o 'accessControl' do outro usuário.
-        await inviteRef.update({
-            role: newRole
+        const batch = db.batch();
+        batch.update(db.doc(`invitations/${inviteId}`), { role: newRole });
+        batch.update(db.doc(`accessControl/${invitedUserId}`), {
+            [inviteData.resourceId]: newRole
         });
 
+        await batch.commit();
         hideLoading();
-        showSuccess('Permissão atualizada!', `O convite foi atualizado para "${newRole}".`);
-        loadSharedAccess(); // Recarrega a visualização
-
+        showSuccess('Permissão atualizada!');
+        loadSharedAccess();
+        
     } catch (error) {
+        console.error('Erro ao atualizar permissão:', error);
         hideLoading();
-        console.error("Erro ao atualizar permissão:", error);
         showError('Erro na Atualização', error.message);
     }
 }
