@@ -248,9 +248,23 @@ function renderEntityInLibrary(entity) {
     }
 }
 
+// No arquivo js/main.js
+
 function renderModule(moduleData) {
     const container = document.getElementById('module-container');
     const template = document.getElementById('module-template');
+
+    // ================== INÍCIO DA CORREÇÃO ==================
+    // Adiciona uma verificação para garantir que o template foi encontrado.
+    // Se não for encontrado, a função para de executar e evita o erro.
+    if (!template) {
+        console.error("Erro Crítico: O template de módulo (#module-template) não foi encontrado no DOM. A renderização do módulo foi abortada.");
+        // Opcional: mostrar um erro ao usuário, mas por enquanto, apenas logar é mais seguro.
+        // showError('Erro de Interface', 'Não foi possível carregar os componentes visuais.');
+        return null; // Retorna null para indicar que a renderização falhou.
+    }
+    // =================== FIM DA CORREÇÃO ====================
+
     const clone = template.content.cloneNode(true);
     const moduleEl = clone.querySelector('.module-quadro');
     
