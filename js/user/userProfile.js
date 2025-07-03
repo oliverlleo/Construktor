@@ -33,46 +33,76 @@ export function initUserProfile(database) {
 function setupUserMenu() {
     const settingsMenuTrigger = document.getElementById('settings-menu-trigger');
     const userMenuDropdown = document.getElementById('user-menu-dropdown');
-    
-    settingsMenuTrigger.addEventListener('click', () => {
-        // Lógica original restaurada:
-        userMenuDropdown.classList.toggle('hidden');
-        userMenuActive = !userMenuActive; // Manter o controle de estado
+    const userMenuButton = document.getElementById('user-menu-button'); // Botão original
 
-        // A lógica do ícone de chevron é removida, pois a engrenagem é estática.
-    });
-    
-    // Fecha o menu ao clicar fora dele
-    // A lógica de fechar ao clicar fora precisa ser ajustada para settingsMenuTrigger também
-    // e não deve tentar atualizar o chevron.
+    if (settingsMenuTrigger && userMenuDropdown) {
+        settingsMenuTrigger.addEventListener('click', () => {
+            // ===== INÍCIO DA CORREÇÃO CRÍTICA =====
+            // Verifica se o usuário está autenticado ANTES de abrir o menu
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                console.warn("Tentativa de abrir o menu do usuário sem autenticação confirmada.");
+                showError("Aguarde", "Aguardando confirmação da sessão...");
+                return; // Impede a abertura do menu
+            }
+            // ===== FIM DA CORREÇÃO CRÍTICA =====
+
+            // Lógica original de abrir/fechar o menu
+            userMenuDropdown.classList.toggle('hidden');
+        });
+    }
+
+    // Lógica para fechar o menu ao clicar fora dele
     document.addEventListener('click', (event) => {
-        if (settingsMenuTrigger && userMenuDropdown) { // Adicionada verificação de existência
-            if (!settingsMenuTrigger.contains(event.target) && !userMenuDropdown.contains(event.target)) {
-                if (!userMenuDropdown.classList.contains('hidden')) {
-                    userMenuDropdown.classList.add('hidden');
-                    userMenuActive = false;
-                }
+        if (settingsMenuTrigger && userMenuDropdown && !settingsMenuTrigger.contains(event.target) && !userMenuDropdown.contains(event.target)) {
+            if (!userMenuDropdown.classList.contains('hidden')) {
+                userMenuDropdown.classList.add('hidden');
             }
         }
     });
-    
-    // Configura o botão de editar perfil
+
+    // Configura os botões internos do menu (editar perfil, logout, etc.)
+    // Esta parte do seu código original permanece a mesma
     document.getElementById('edit-profile-button').addEventListener('click', () => {
         userMenuDropdown.classList.add('hidden');
-        userMenuActive = false;
         openProfileModal();
     });
-    
-    // Configura o botão de logout
+
     document.getElementById('logout-button').addEventListener('click', async () => {
         userMenuDropdown.classList.add('hidden');
-        const result = await logout();
-        if (result.success) {
-            // O redirecionamento será tratado pelo módulo de autenticação
-        } else {
-            showError('Erro ao sair', result.error);
-        }
+        await logout();
     });
+
+    // Adicione aqui os listeners para 'invite-user-button' e 'manage-invites-button'
+    // se eles também estiverem dentro de setupUserMenu
+    // Verificando o HTML, esses botões estão dentro do dropdown e devem ser configurados aqui.
+    const inviteUserButton = document.getElementById('invite-user-button');
+    if (inviteUserButton) {
+        inviteUserButton.addEventListener('click', () => {
+            userMenuDropdown.classList.add('hidden');
+            // Supondo que existe uma função para abrir o modal de convite, ex: openInviteModal()
+            if (window.openInviteModal) {
+                window.openInviteModal();
+            } else {
+                console.warn('Função openInviteModal não encontrada.');
+                showError('Funcionalidade indisponível', 'Não foi possível abrir a tela de convites.');
+            }
+        });
+    }
+
+    const manageInvitesButton = document.getElementById('manage-invites-button');
+    if (manageInvitesButton) {
+        manageInvitesButton.addEventListener('click', () => {
+            userMenuDropdown.classList.add('hidden');
+            // Supondo que existe uma função para abrir o modal de gerenciamento de convites, ex: openManageInvitesModal()
+            if (window.openManageInvitesModal) {
+                window.openManageInvitesModal();
+            } else {
+                console.warn('Função openManageInvitesModal não encontrada.');
+                showError('Funcionalidade indisponível', 'Não foi possível abrir a tela de gerenciamento de convites.');
+            }
+        });
+    }
 }
 
 /**
