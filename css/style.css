@@ -1191,3 +1191,24 @@ pre {
     margin-top: 0.5rem; /* Ajuste conforme necessário */
     z-index: 50;
 }
+
+/* Estilos para o Dropdown do Menu Principal */
+.dark #construktor-menu-dropdown {
+    background-color: #334155;
+    border-color: #475569;
+}
+
+.dark #construktor-menu-dropdown a {
+    color: #e2e8f0;
+}
+
+.dark #construktor-menu-dropdown a.active,
+.dark #construktor-menu-dropdown a:hover {
+    background-color: #475569;
+}
+
+#construktor-menu-dropdown a.active {
+    background-color: #e0e7ff; /* indigo-100 */
+    font-weight: 600;
+    color: #4f46e5; /* indigo-600 */
+}
