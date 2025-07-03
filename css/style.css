@@ -1178,3 +1178,17 @@ pre {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Estilos para o novo botão de configurações e dropdown */
+#settings-menu-trigger {
+  /* Adicione estilos se necessário para posicionamento, mas as classes Tailwind devem cuidar disso. */
+  /* Ex: float: right; se não estiver usando Flexbox no container pai */
+}
+
+#user-menu-dropdown {
+  position: absolute;
+  right: 0; /* Alinha à direita do #settings-menu-trigger que é seu novo pai relativo */
+  top: 100%; /* Posiciona abaixo do botão de engrenagem */
+  margin-top: 0.5rem; /* Espaçamento entre o botão e o menu */
+  /* Outros estilos existentes como width, bg-white, rounded-lg, shadow-xl, etc., são mantidos */
+}

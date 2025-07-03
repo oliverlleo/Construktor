@@ -31,45 +31,23 @@ export function initUserProfile(database) {
  * Configura o menu do usuário
  */
 function setupUserMenu() {
-    const userMenuButton = document.getElementById('user-menu-button');
+    const settingsMenuTrigger = document.getElementById('settings-menu-trigger');
     const userMenuDropdown = document.getElementById('user-menu-dropdown');
     
     // Mostra/Esconde o menu ao clicar no botão
-    userMenuButton.addEventListener('click', () => {
+    settingsMenuTrigger.addEventListener('click', () => {
         userMenuDropdown.classList.toggle('hidden');
-        userMenuActive = !userMenuActive;
-        
-        // Atualiza o ícone de chevron
-        const chevronIcon = userMenuButton.querySelector('[data-lucide="chevron-down"]');
-        if (chevronIcon) {
-            chevronIcon.setAttribute('data-lucide', userMenuActive ? 'chevron-up' : 'chevron-down');
-            const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-            if (window.lucide && iconsToUpdate) {
-                lucide.createIcons({
-                    icons: iconsToUpdate
-                });
-            }
-        }
+        userMenuActive = !userMenuDropdown.classList.contains('hidden');
+        // A lógica do ícone de chevron foi removida, pois o ícone de engrenagem é estático.
     });
     
     // Fecha o menu ao clicar fora dele
     document.addEventListener('click', (event) => {
-        if (!userMenuButton.contains(event.target) && !userMenuDropdown.contains(event.target)) {
+        if (!settingsMenuTrigger.contains(event.target) && !userMenuDropdown.contains(event.target)) {
             if (!userMenuDropdown.classList.contains('hidden')) {
                 userMenuDropdown.classList.add('hidden');
                 userMenuActive = false;
-                
-                // Atualiza o ícone de chevron
-                const chevronIcon = userMenuButton.querySelector('[data-lucide]');
-                if (chevronIcon) {
-                    chevronIcon.setAttribute('data-lucide', 'chevron-down');
-                    const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-                    if (window.lucide && iconsToUpdate) {
-                        lucide.createIcons({
-                            icons: iconsToUpdate
-                        });
-                    }
-                }
+                // A lógica do ícone de chevron foi removida.
             }
         }
     });
