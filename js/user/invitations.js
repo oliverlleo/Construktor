@@ -35,7 +35,12 @@ function setupInviteModal() {
     
     // Abrir o modal
     inviteUserButton.addEventListener('click', () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
+        if (settingsMenuDropdown) {
+            settingsMenuDropdown.classList.add('hidden');
+        }
+        // Consider resetting settingsMenuActive state here if not handled by userProfile.js
+        // For now, assuming the click-outside listener in userProfile.js handles the state.
         inviteModal.classList.remove('hidden');
         setTimeout(() => {
             inviteModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
@@ -73,7 +78,11 @@ function setupManageInvitesModal() {
     
     // Abrir o modal
     manageInvitesButton.addEventListener('click', async () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
+        if (settingsMenuDropdown) {
+            settingsMenuDropdown.classList.add('hidden');
+        }
+        // Consider resetting settingsMenuActive state here if not handled by userProfile.js
         manageInvitesModal.classList.remove('hidden');
         setTimeout(() => {
             manageInvitesModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
