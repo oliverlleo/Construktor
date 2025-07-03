@@ -265,7 +265,7 @@ async function saveUserProfile() {
         }
         
         // Atualiza os dados no banco
-        await db.doc(`users/${userId}`).update(updateData);
+        await db.doc(`users/${userId}`).set(updateData, { merge: true });
         
         // Atualiza a interface
         document.getElementById('user-display-name').textContent = newNickname;
