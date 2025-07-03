@@ -175,67 +175,79 @@
     <!-- ESTRUTURA PRINCIPAL DA APLICAÇÃO -->
     <div id="app" class="h-screen w-screen flex flex-col overflow-hidden" style="display: none;">
         
-        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex justify-between items-center shadow-sm z-30 sticky top-0">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
-                    <i class="fa-solid fa-bars w-6 h-6"></i>
-                </button>
-                <div class="relative">
-                    <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
-                        <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
-                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400"></i>
-                    </button>
+<header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-3 flex justify-between items-center shadow-sm z-30 sticky top-0">
+    <div class="flex items-center gap-2 sm:gap-3">
+        <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 sm:hidden">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <div class="relative">
+            <button id="construktor-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">Construktor</h1>
+                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+            </button>
+            <div id="construktor-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-2 z-50 hidden">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="layout-template" class="h-4 w-4"></i>
+                    <span>Modelador de Módulos</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="workflow" class="h-4 w-4"></i>
+                    <span>Designer de Fluxos</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="layout-panel-left" class="h-4 w-4"></i>
+                    <span>Construtor de Páginas</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
-                    <div id="user-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
-                        <div class="p-2">
-                            <p class="text-xs text-slate-500">Logado como</p>
-                            <div class="flex items-center gap-2 mt-1">
-                                <img id="user-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-8 w-8 rounded-full">
-                                <span id="user-display-name" class="font-semibold text-slate-700">Carregando...</span>
-                            </div>
-                        </div>
-                        <hr class="my-2">
-                        <a href="#" id="edit-profile-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i class="fa-solid fa-gear h-4 w-4"></i>
-                            <span>Configurações do Perfil</span>
-                        </a>
-                        <a href="#" id="invite-user-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i class="fa-solid fa-user-plus h-4 w-4"></i>
-                            <span>Convidar</span>
-                        </a>
-                        <a href="#" id="manage-invites-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 relative">
-                            <i class="fa-solid fa-inbox h-4 w-4"></i>
-                            <span>Gerenciar Convites</span>
-                            <span id="menu-invites-badge" class="absolute hidden top-1 right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
-                        </a>
-                        <hr class="my-2">
-                        <a href="#" id="logout-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
-                            <i class="fa-solid fa-right-from-bracket h-4 w-4"></i>
-                            <span>Sair</span>
-                        </a>
+    <div class="flex items-center gap-2 sm:gap-4">
+        <button id="help-button" class="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+            <i data-lucide="help-circle" class="h-5 w-5"></i>
+            <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
+        </button>
+        <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
+            <i data-lucide="code" class="h-4 w-4 sm:h-5 sm:w-5"></i>
+            <span class="font-medium">Ver Código</span>
+        </a>
+
+        <div class="relative">
+            <button id="settings-menu-button" class="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                <i data-lucide="settings" class="h-5 w-5"></i>
+            </button>
+            <div id="settings-menu-dropdown" class="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-2 z-50 hidden">
+                <div class="p-2">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Logado como</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <img id="user-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-8 w-8 rounded-full">
+                        <span id="user-display-name" class="font-semibold text-slate-700 dark:text-slate-200">Carregando...</span>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-4">
-                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
-                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
-                </button>
-                <!-- Botão Ver Código apenas visível em desktop -->
-                <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Código</span>
+                <hr class="my-2 border-slate-200 dark:border-slate-600">
+                <a href="#" id="edit-profile-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="user-cog" class="h-4 w-4"></i>
+                    <span>Configurações do Perfil</span>
                 </a>
-                <!-- Botão Ver Página apenas visível em desktop -->
-                <a href="pages/user-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Página</span>
+                <a href="#" id="invite-user-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="user-plus" class="h-4 w-4"></i>
+                    <span>Convidar</span>
                 </a>
-                <!-- Botão de logout removido pois agora está no menu do usuário -->
-                
+                <a href="#" id="manage-invites-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 relative">
+                    <i data-lucide="inbox" class="h-4 w-4"></i>
+                    <span>Gerenciar Convites</span>
+                    <span id="menu-invites-badge" class="absolute hidden top-1 right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                </a>
+                <hr class="my-2 border-slate-200 dark:border-slate-600">
+                <a href="#" id="logout-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                    <span>Sair</span>
+                </a>
             </div>
-        </header>
+        </div>
+    </div>
+</header>
 
         <main class="flex-1 flex overflow-hidden relative">
             <!-- Sidebar para desktop -->

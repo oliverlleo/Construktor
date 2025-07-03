@@ -63,43 +63,44 @@ class DarkModeManager {
         this.createLoginSelector();
     }
 
-    createHeaderSelector() {
-        // Adiciona o seletor ao menu dropdown do usuário no index.html
-        const userMenuDropdown = document.getElementById('user-menu-dropdown');
-        if (userMenuDropdown) {
-            // Cria o elemento de seletor de tema
-            const themeSelector = document.createElement('div');
-            themeSelector.className = 'flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300';
-            themeSelector.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-palette h-4 w-4"></i>
-                    <span>Tema</span>
-                </div>
-                <button id="theme-toggle-header" class="theme-toggle flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                    <i class="theme-icon fa-solid fa-sun h-3 w-3 text-amber-500"></i>
-                    <i class="theme-icon fa-solid fa-moon h-3 w-3 text-indigo-500 hidden"></i>
-                </button>
-            `;
+createHeaderSelector() {
+    // CORREÇÃO: Aponta para o dropdown de configurações
+    const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
+    if (settingsMenuDropdown) {
+        // Cria o elemento de seletor de tema
+        const themeSelector = document.createElement('div');
+        themeSelector.className = 'flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300';
+        themeSelector.innerHTML = `
+            <div class="flex items-center gap-3">
+                <i data-lucide="palette" class="h-4 w-4"></i>
+                <span>Tema</span>
+            </div>
+            <button id="theme-toggle-header" class="theme-toggle flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                <i class="theme-icon fa-solid fa-sun h-3 w-3 text-amber-500"></i>
+                <i class="theme-icon fa-solid fa-moon h-3 w-3 text-indigo-500 hidden"></i>
+            </button>
+        `;
 
-            // Insere antes do último hr (antes do logout)
-            const lastHr = userMenuDropdown.querySelector('hr:last-of-type');
-            if (lastHr) {
-                userMenuDropdown.insertBefore(themeSelector, lastHr);
-            } else {
-                userMenuDropdown.appendChild(themeSelector);
-            }
-
-            // Adiciona event listener
-            const toggleButton = themeSelector.querySelector('#theme-toggle-header');
-            if (toggleButton) {
-                toggleButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.toggle();
-                });
-            }
+        // Insere antes do último hr (antes do logout)
+        const lastHr = settingsMenuDropdown.querySelector('hr:last-of-type');
+        if (lastHr) {
+            settingsMenuDropdown.insertBefore(themeSelector, lastHr);
+        } else {
+            settingsMenuDropdown.appendChild(themeSelector);
         }
+
+        // Adiciona event listener
+        const toggleButton = themeSelector.querySelector('#theme-toggle-header');
+        if (toggleButton) {
+            toggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggle();
+            });
+        }
+        if (window.lucide) window.lucide.createIcons();
     }
+}
 
     createLoginSelector() {
         // Adiciona o seletor à página de login no canto superior direito

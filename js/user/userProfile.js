@@ -1,95 +1,66 @@
-/**
- * Módulo de gerenciamento de perfil do usuário
- * Responsável por exibir e atualizar informações do usuário
- */
-
 import { getUsuarioAtual, getUsuarioId, getUsuarioNome, getUsuarioEmail, getUsuarioFoto, logout } from '../autenticacao.js';
 import { showSuccess, showError, showLoading, hideLoading } from '../ui.js';
 
-// Variáveis do módulo
 let db;
 let storage;
-let auth;
-let userMenuActive = false;
+// let auth; // auth is declared but not used in the new code, so it's commented out.
+// let userMenuActive = false; // userMenuActive is declared but not used in the new code, so it's commented out.
 
-/**
- * Inicializa o módulo de perfil do usuário
- * @param {Object} database - Referência ao banco de dados Firestore
- */
-export function initUserProfile(database) {
-    console.log('Inicializando módulo de perfil do usuário...');
-    db = database;
-    auth = firebase.auth();
-    storage = firebase.storage();
-    
-    setupUserMenu();
-    setupProfileModal();
-    loadUserProfileData();
-}
+// Função genérica para controlar um dropdown
+function setupDropdown(buttonId, dropdownId, rotateIcon = false) {
+    const button = document.getElementById(buttonId);
+    const dropdown = document.getElementById(dropdownId);
+    if (!button || !dropdown) return;
 
-/**
- * Configura o menu do usuário
- */
-function setupUserMenu() {
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userMenuDropdown = document.getElementById('user-menu-dropdown');
-    
-    // Mostra/Esconde o menu ao clicar no botão
-    userMenuButton.addEventListener('click', () => {
-        userMenuDropdown.classList.toggle('hidden');
-        userMenuActive = !userMenuActive;
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = dropdown.classList.toggle('hidden');
         
-        // Atualiza o ícone de chevron
-        const chevronIcon = userMenuButton.querySelector('[data-lucide="chevron-down"]');
-        if (chevronIcon) {
-            chevronIcon.setAttribute('data-lucide', userMenuActive ? 'chevron-up' : 'chevron-down');
-            const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-            if (window.lucide && iconsToUpdate) {
-                lucide.createIcons({
-                    icons: iconsToUpdate
-                });
+        if (rotateIcon) {
+            const icon = button.querySelector('[data-lucide]');
+            if (icon) {
+                icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+                if (window.lucide) window.lucide.createIcons();
             }
         }
     });
-    
-    // Fecha o menu ao clicar fora dele
+
     document.addEventListener('click', (event) => {
-        if (!userMenuButton.contains(event.target) && !userMenuDropdown.contains(event.target)) {
-            if (!userMenuDropdown.classList.contains('hidden')) {
-                userMenuDropdown.classList.add('hidden');
-                userMenuActive = false;
-                
-                // Atualiza o ícone de chevron
-                const chevronIcon = userMenuButton.querySelector('[data-lucide]');
-                if (chevronIcon) {
-                    chevronIcon.setAttribute('data-lucide', 'chevron-down');
-                    const iconsToUpdate = document.querySelectorAll('[data-lucide]');
-                    if (window.lucide && iconsToUpdate) {
-                        lucide.createIcons({
-                            icons: iconsToUpdate
-                        });
+        if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+            if (!dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                if (rotateIcon) {
+                    const icon = button.querySelector('[data-lucide]');
+                    if (icon) {
+                        icon.setAttribute('data-lucide', 'chevron-down');
+                        if (window.lucide) window.lucide.createIcons();
                     }
                 }
             }
         }
     });
-    
-    // Configura o botão de editar perfil
-    document.getElementById('edit-profile-button').addEventListener('click', () => {
-        userMenuDropdown.classList.add('hidden');
-        userMenuActive = false;
+    return dropdown;
+}
+
+// Configura o menu principal "Construktor"
+function setupConstruktorMenu() {
+    setupDropdown('construktor-menu-button', 'construktor-menu-dropdown', true);
+}
+
+// Configura o menu de Configurações (engrenagem)
+function setupSettingsMenu() {
+    const dropdown = setupDropdown('settings-menu-button', 'settings-menu-dropdown');
+    if (!dropdown) return;
+
+    // Adiciona a lógica específica para os botões deste menu
+    dropdown.querySelector('#edit-profile-button').addEventListener('click', () => {
+        dropdown.classList.add('hidden');
         openProfileModal();
     });
-    
-    // Configura o botão de logout
-    document.getElementById('logout-button').addEventListener('click', async () => {
-        userMenuDropdown.classList.add('hidden');
-        const result = await logout();
-        if (result.success) {
-            // O redirecionamento será tratado pelo módulo de autenticação
-        } else {
-            showError('Erro ao sair', result.error);
-        }
+
+    dropdown.querySelector('#logout-button').addEventListener('click', async () => {
+        dropdown.classList.add('hidden');
+        await logout();
     });
 }
 
@@ -301,4 +272,17 @@ export async function getUserProfileData() {
         console.error('Erro ao obter dados do perfil:', error);
         return null;
     }
+}
+
+// Função de inicialização principal do módulo
+export function initUserProfile(database) {
+    db = database;
+    storage = firebase.storage(); // Initialize storage here
+    // auth = firebase.auth(); // auth is not used in the new code
+
+    setupConstruktorMenu();
+    setupSettingsMenu();
+
+    setupProfileModal();
+    loadUserProfileData();
 }

@@ -23,9 +23,6 @@ export function initInvitations(database) {
     setupManageInvitesModal();
 }
 
-/**
- * Configura o modal de convite
- */
 function setupInviteModal() {
     const inviteModal = document.getElementById('invite-modal');
     const inviteUserButton = document.getElementById('invite-user-button');
@@ -33,19 +30,20 @@ function setupInviteModal() {
     const cancelInviteButton = document.getElementById('cancel-invite-button');
     const sendInviteButton = document.getElementById('send-invite-button');
     
-    // Abrir o modal
+    if (!inviteUserButton) return;
+
     inviteUserButton.addEventListener('click', () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        // CORREÇÃO: Aponta para o menu de engrenagem
+        const settingsDropdown = document.getElementById('settings-menu-dropdown');
+        if(settingsDropdown) settingsDropdown.classList.add('hidden');
+
         inviteModal.classList.remove('hidden');
         setTimeout(() => {
             inviteModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
         }, 10);
-        
-        // Limpa o campo de email
         document.getElementById('invite-email-input').value = '';
     });
     
-    // Fechar o modal
     const closeModal = () => {
         inviteModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
         setTimeout(() => {
@@ -55,14 +53,9 @@ function setupInviteModal() {
     
     closeInviteModal.addEventListener('click', closeModal);
     cancelInviteButton.addEventListener('click', closeModal);
-    
-    // Enviar convite
     sendInviteButton.addEventListener('click', sendInvite);
 }
 
-/**
- * Configura o modal de gerenciamento de convites
- */
 function setupManageInvitesModal() {
     const manageInvitesModal = document.getElementById('manage-invites-modal');
     const manageInvitesButton = document.getElementById('manage-invites-button');
@@ -71,24 +64,25 @@ function setupManageInvitesModal() {
     const tabInvitesReceived = document.getElementById('tab-invites-received');
     const tabInvitesAccess = document.getElementById('tab-invites-access');
     
-    // Abrir o modal
+    if (!manageInvitesButton) return;
+
     manageInvitesButton.addEventListener('click', async () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        // CORREÇÃO: Aponta para o menu de engrenagem
+        const settingsDropdown = document.getElementById('settings-menu-dropdown');
+        if(settingsDropdown) settingsDropdown.classList.add('hidden');
+
         manageInvitesModal.classList.remove('hidden');
         setTimeout(() => {
             manageInvitesModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
         }, 10);
         
-        // Verifica se há convites pendentes
         const pendingCount = await checkPendingInvitations();
         
-        // Se houver convites pendentes e a aba ativa não for "recebidos", muda para essa aba
         if (pendingCount > 0 && activeTab !== 'received') {
             activeTab = 'received';
             updateInvitesTabUI();
         }
         
-        // Carrega os convites ou acessos compartilhados
         if (activeTab === 'access') {
             loadSharedAccess();
         } else {
@@ -96,7 +90,6 @@ function setupManageInvitesModal() {
         }
     });
     
-    // Fechar o modal
     closeManageInvitesModal.addEventListener('click', () => {
         manageInvitesModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
         setTimeout(() => {
