@@ -33,46 +33,59 @@ export function initUserProfile(database) {
 function setupUserMenu() {
     const settingsMenuTrigger = document.getElementById('settings-menu-trigger');
     const userMenuDropdown = document.getElementById('user-menu-dropdown');
-    
-    settingsMenuTrigger.addEventListener('click', () => {
-        // Lógica original restaurada:
-        userMenuDropdown.classList.toggle('hidden');
-        userMenuActive = !userMenuActive; // Manter o controle de estado
+    // const userMenuButton = document.getElementById('user-menu-button'); // Botão original, não usado no novo snippet diretamente para o listener principal
 
-        // A lógica do ícone de chevron é removida, pois a engrenagem é estática.
-    });
-    
-    // Fecha o menu ao clicar fora dele
-    // A lógica de fechar ao clicar fora precisa ser ajustada para settingsMenuTrigger também
-    // e não deve tentar atualizar o chevron.
+    if (settingsMenuTrigger && userMenuDropdown) {
+        settingsMenuTrigger.addEventListener('click', () => {
+            // ===== INÍCIO DA CORREÇÃO CRÍTICA =====
+            // Verifica se o usuário está autenticado ANTES de abrir o menu
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                console.warn("Tentativa de abrir o menu do usuário sem autenticação confirmada.");
+                showError("Aguarde", "Aguardando confirmação da sessão...");
+                return; // Impede a abertura do menu
+            }
+            // ===== FIM DA CORREÇÃO CRÍTICA =====
+
+            // Lógica original de abrir/fechar o menu
+            userMenuDropdown.classList.toggle('hidden');
+            // userMenuActive não é mais usado aqui diretamente para o toggle, o estado é inferido pela classe 'hidden'
+        });
+    }
+
+    // Lógica para fechar o menu ao clicar fora dele
     document.addEventListener('click', (event) => {
-        if (settingsMenuTrigger && userMenuDropdown) { // Adicionada verificação de existência
-            if (!settingsMenuTrigger.contains(event.target) && !userMenuDropdown.contains(event.target)) {
-                if (!userMenuDropdown.classList.contains('hidden')) {
-                    userMenuDropdown.classList.add('hidden');
-                    userMenuActive = false;
-                }
+        if (settingsMenuTrigger && userMenuDropdown && !settingsMenuTrigger.contains(event.target) && !userMenuDropdown.contains(event.target)) {
+            if (!userMenuDropdown.classList.contains('hidden')) {
+                userMenuDropdown.classList.add('hidden');
+                // userMenuActive = false; // userMenuActive não é mais usado aqui
             }
         }
     });
-    
-    // Configura o botão de editar perfil
+
+    // Configura os botões internos do menu (editar perfil, logout, etc.)
+    // Esta parte do seu código original permanece a mesma
     document.getElementById('edit-profile-button').addEventListener('click', () => {
-        userMenuDropdown.classList.add('hidden');
-        userMenuActive = false;
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        // userMenuActive = false; // userMenuActive não é mais usado aqui
         openProfileModal();
     });
-    
-    // Configura o botão de logout
+
     document.getElementById('logout-button').addEventListener('click', async () => {
-        userMenuDropdown.classList.add('hidden');
-        const result = await logout();
-        if (result.success) {
-            // O redirecionamento será tratado pelo módulo de autenticação
-        } else {
-            showError('Erro ao sair', result.error);
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        // userMenuActive = false; // userMenuActive não é mais usado aqui
+        const result = await logout(); // Mantido o await logout() original
+        if (result && !result.success) { // Verificando se result existe e se !result.success
+             showError('Erro ao sair', result.error);
         }
     });
+
+    // Os listeners para 'invite-user-button' e 'manage-invites-button'
+    // não estavam no trecho substituído anteriormente, então não há necessidade de adicioná-los explicitamente aqui
+    // a menos que estivessem faltando no código base original.
+    // Se eles são configurados em outro lugar (ex: initInvitations), está correto.
+    // Se eles PRECISAM estar aqui, precisaria do código original completo de setupUserMenu.
+    // Assumindo que o código original já os tinha ou os configura em outro local apropriado.
 }
 
 /**
