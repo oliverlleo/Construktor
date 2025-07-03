@@ -3,7 +3,7 @@
  * Responsável por criar, aceitar e recusar convites para usuários
  */
 
-import { getUsuarioAtual, getUsuarioId, getUsuarioNome, getUsuarioEmail } from '../autenticacao.js';
+import { getUsuarioId, getUsuarioNome, getUsuarioEmail } from '../autenticacao.js';
 import { showSuccess, showError, showLoading, hideLoading } from '../ui.js';
 import { getUserProfileData } from './userProfile.js';
 
@@ -19,8 +19,12 @@ export function initInvitations(database) {
     console.log('Inicializando módulo de convites...');
     db = database;
     
-    setupInviteModal();
-    setupManageInvitesModal();
+    if (document.getElementById('invite-modal')) {
+        setupInviteModal();
+    }
+    if (document.getElementById('manage-invites-modal')) {
+        setupManageInvitesModal();
+    }
 }
 
 /**
@@ -33,21 +37,29 @@ function setupInviteModal() {
     const cancelInviteButton = document.getElementById('cancel-invite-button');
     const sendInviteButton = document.getElementById('send-invite-button');
     
-    // Abrir o modal
+    if (!inviteModal || !inviteUserButton || !closeInviteModal || !cancelInviteButton || !sendInviteButton) {
+        console.error("Um ou mais elementos do modal de convite não foram encontrados.");
+        return;
+    }
+
     inviteUserButton.addEventListener('click', () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        
         inviteModal.classList.remove('hidden');
         setTimeout(() => {
-            inviteModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
+            const modalContent = inviteModal.querySelector('.bg-white');
+            if (modalContent) modalContent.classList.remove('scale-95', 'opacity-0');
         }, 10);
         
-        // Limpa o campo de email
-        document.getElementById('invite-email-input').value = '';
+        const emailInput = document.getElementById('invite-email-input');
+        if (emailInput) emailInput.value = '';
     });
     
-    // Fechar o modal
     const closeModal = () => {
-        inviteModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
+        const modalContent = inviteModal.querySelector('.bg-white');
+        if (modalContent) modalContent.classList.add('scale-95', 'opacity-0');
+        
         setTimeout(() => {
             inviteModal.classList.add('hidden');
         }, 300);
@@ -55,8 +67,6 @@ function setupInviteModal() {
     
     closeInviteModal.addEventListener('click', closeModal);
     cancelInviteButton.addEventListener('click', closeModal);
-    
-    // Enviar convite
     sendInviteButton.addEventListener('click', sendInvite);
 }
 
@@ -71,40 +81,44 @@ function setupManageInvitesModal() {
     const tabInvitesReceived = document.getElementById('tab-invites-received');
     const tabInvitesAccess = document.getElementById('tab-invites-access');
     
-    // Abrir o modal
+    if (!manageInvitesModal || !manageInvitesButton || !closeManageInvitesModal || !tabInvitesSent || !tabInvitesReceived || !tabInvitesAccess) {
+        console.error("Um ou mais elementos do modal de gerenciamento de convites não foram encontrados.");
+        return;
+    }
+
     manageInvitesButton.addEventListener('click', async () => {
-        document.getElementById('user-menu-dropdown').classList.add('hidden');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        
         manageInvitesModal.classList.remove('hidden');
         setTimeout(() => {
-            manageInvitesModal.querySelector('.bg-white').classList.remove('scale-95', 'opacity-0');
+            const modalContent = manageInvitesModal.querySelector('.bg-white');
+            if (modalContent) modalContent.classList.remove('scale-95', 'opacity-0');
         }, 10);
         
-        // Verifica se há convites pendentes
         const pendingCount = await checkPendingInvitations();
         
-        // Se houver convites pendentes e a aba ativa não for "recebidos", muda para essa aba
         if (pendingCount > 0 && activeTab !== 'received') {
             activeTab = 'received';
             updateInvitesTabUI();
         }
         
-        // Carrega os convites ou acessos compartilhados
         if (activeTab === 'access') {
-            loadSharedAccess();
+            await loadSharedAccess();
         } else {
-            loadInvites(activeTab);
+            await loadInvites(activeTab);
         }
     });
     
-    // Fechar o modal
     closeManageInvitesModal.addEventListener('click', () => {
-        manageInvitesModal.querySelector('.bg-white').classList.add('scale-95', 'opacity-0');
+        const modalContent = manageInvitesModal.querySelector('.bg-white');
+        if (modalContent) modalContent.classList.add('scale-95', 'opacity-0');
+        
         setTimeout(() => {
             manageInvitesModal.classList.add('hidden');
         }, 300);
     });
     
-    // Alternar entre as abas
     tabInvitesSent.addEventListener('click', () => {
         if (activeTab === 'sent') return;
         activeTab = 'sent';
@@ -126,22 +140,24 @@ function setupManageInvitesModal() {
         loadSharedAccess();
     });
     
-    // Delegação de eventos para os convites e acessos
     manageInvitesModal.addEventListener('click', async (event) => {
         const target = event.target;
         const card = target.closest('.invite-card, .shared-access-item');
         if (!card) return;
 
         const inviteId = card.dataset.inviteId;
+        if (!inviteId) return;
 
         if (target.closest('.cancel-invite-btn')) await manageInvite(inviteId, 'cancel');
         if (target.closest('.accept-invite-btn')) await manageInvite(inviteId, 'accept');
         if (target.closest('.decline-invite-btn')) await manageInvite(inviteId, 'decline');
         
         if (target.closest('.save-permission-btn')) {
-            const newRole = card.querySelector('.permission-select').value;
-            await updateUserPermission(inviteId, newRole);
-            target.closest('.save-permission-btn').classList.add('hidden');
+            const newRole = card.querySelector('.permission-select')?.value;
+            if (newRole) {
+                await updateUserPermission(inviteId, newRole);
+                target.closest('.save-permission-btn').classList.add('hidden');
+            }
         }
 
         if (target.closest('.remove-access-btn')) {
@@ -161,29 +177,21 @@ function setupManageInvitesModal() {
  * Atualiza a UI das abas de convites
  */
 function updateInvitesTabUI() {
-    const tabs = {
-        sent: document.getElementById('tab-invites-sent'),
-        received: document.getElementById('tab-invites-received'),
-        access: document.getElementById('tab-invites-access')
-    };
-    const containers = {
-        sent: document.getElementById('sent-invites-container'),
-        received: document.getElementById('received-invites-container'),
-        access: document.getElementById('access-management-container')
-    };
+    const tabs = { sent: document.getElementById('tab-invites-sent'), received: document.getElementById('tab-invites-received'), access: document.getElementById('tab-invites-access') };
+    const containers = { sent: document.getElementById('sent-invites-container'), received: document.getElementById('received-invites-container'), access: document.getElementById('access-management-container') };
     
     for (const key in tabs) {
-        const isTabActive = key === activeTab;
-        tabs[key].classList.toggle('border-indigo-600', isTabActive);
-        tabs[key].classList.toggle('text-indigo-600', isTabActive);
-        tabs[key].classList.toggle('border-slate-200', !isTabActive);
-        tabs[key].classList.toggle('text-slate-500', !isTabActive);
-        containers[key].classList.toggle('hidden', !isTabActive);
+        if (tabs[key] && containers[key]) {
+            const isTabActive = key === activeTab;
+            tabs[key].classList.toggle('border-indigo-600', isTabActive);
+            tabs[key].classList.toggle('text-indigo-600', isTabActive);
+            tabs[key].classList.toggle('border-slate-200', !isTabActive);
+            tabs[key].classList.toggle('text-slate-500', !isTabActive);
+            containers[key].classList.toggle('hidden', !isTabActive);
+        }
     }
     
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
+    if (window.lucide) window.lucide.createIcons();
 }
 
 /**
@@ -215,7 +223,7 @@ async function sendInvite() {
             fromUserId: getUsuarioId(),
             fromUserName: senderName,
             toEmail: email,
-            toUserId: null, // Será preenchido quando o convite for aceite
+            toUserId: null,
             resourceType: 'workspace',
             resourceId: currentWorkspace.id,
             resourceName: currentWorkspace.name,
@@ -229,9 +237,8 @@ async function sendInvite() {
         hideLoading();
         showSuccess('Convite enviado', `Um convite foi enviado para ${email}.`);
         if (activeTab === 'sent') {
-            loadInvites('sent');
+            await loadInvites('sent');
         }
-
     } catch (error) {
         console.error('Erro ao enviar convite:', error);
         hideLoading();
@@ -245,6 +252,13 @@ async function sendInvite() {
  * @param {string} action - Ação a ser executada
  */
 async function manageInvite(inviteId, action) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        showError("Erro de Autenticação", "Sua sessão parece ter expirado ou ainda não foi confirmada. Por favor, aguarde um momento ou tente fazer login novamente.");
+        hideLoading();
+        return; 
+    }
+
     showLoading('Processando...');
     try {
         const inviteSnapshot = await db.doc(`invitations/${inviteId}`).get();
@@ -255,6 +269,8 @@ async function manageInvite(inviteId, action) {
         
         if (action === 'accept') {
             const acceptedByUserId = getUsuarioId();
+            if (!acceptedByUserId) throw new Error("ID do usuário não encontrado. Tente novamente.");
+
             batch.update(db.doc(`invitations/${inviteId}`), {
                 status: 'accepted',
                 acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -294,11 +310,10 @@ async function manageInvite(inviteId, action) {
         hideLoading();
         showSuccess('Sucesso!', 'O convite foi processado.');
 
-        // Recarrega a aba atual
-        if (activeTab === 'access') loadSharedAccess();
-        else loadInvites(activeTab);
+        if (activeTab === 'access') await loadSharedAccess();
+        else await loadInvites(activeTab);
         
-        if (action === 'accept' || action === 'decline') checkPendingInvitations();
+        if (action === 'accept' || action === 'decline') await checkPendingInvitations();
 
     } catch (error) {
         console.error(`Erro ao executar a ação '${action}':`, error);
@@ -313,6 +328,12 @@ async function manageInvite(inviteId, action) {
  * @param {string} newRole - A nova permissão
  */
 async function updateUserPermission(inviteId, newRole) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        showError("Erro de Autenticação", "Sua sessão expirou. Por favor, faça login novamente.");
+        return;
+    }
+
     showLoading('Atualizando permissão...');
     try {
         const inviteSnapshot = await db.doc(`invitations/${inviteId}`).get();
@@ -322,7 +343,7 @@ async function updateUserPermission(inviteId, newRole) {
         if (inviteData.fromUserId !== getUsuarioId()) throw new Error("Apenas o dono do convite pode alterar a permissão.");
         if (inviteData.status !== 'accepted') throw new Error("Só é possível alterar permissões de convites já aceitos.");
         
-        const invitedUserId = inviteData.toUserId; // **CORREÇÃO CRÍTICA**: Usa o `toUserId` guardado
+        const invitedUserId = inviteData.toUserId;
         if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado. O convite pode não ter sido devidamente aceito.");
 
         const batch = db.batch();
@@ -334,7 +355,7 @@ async function updateUserPermission(inviteId, newRole) {
         await batch.commit();
         hideLoading();
         showSuccess('Permissão atualizada!');
-        loadSharedAccess();
+        await loadSharedAccess();
         
     } catch (error) {
         console.error('Erro ao atualizar permissão:', error);
@@ -350,7 +371,10 @@ async function updateUserPermission(inviteId, newRole) {
 async function loadInvites(type) {
     const userId = getUsuarioId();
     const userEmail = getUsuarioEmail()?.toLowerCase();
-    if (!userId || !userEmail) return;
+    if (!userId || !userEmail) {
+        console.warn("loadInvites: Usuário não autenticado ou sem email.");
+        return;
+    }
     
     showLoading(`Carregando convites...`);
     
@@ -369,10 +393,11 @@ async function loadInvites(type) {
             invites = invites.filter(invite => invite.status === 'pending');
         }
         
-        renderInvites(invites.sort((a,b) => b.createdAt - a.createdAt), type);
+        renderInvites(invites.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)), type);
         hideLoading();
     } catch (error) {
         hideLoading();
+        console.error(`Erro ao carregar convites (${type}):`, error);
         showError('Erro', `Ocorreu um erro ao carregar os convites.`);
     }
 }
@@ -388,6 +413,8 @@ function renderInvites(invites, type) {
     const container = document.getElementById(containerId);
     const emptyContainer = document.getElementById(emptyId);
     
+    if (!container || !emptyContainer) return;
+
     container.innerHTML = '';
     container.classList.toggle('hidden', invites.length === 0);
     emptyContainer.classList.toggle('hidden', invites.length > 0);
@@ -395,6 +422,8 @@ function renderInvites(invites, type) {
     if(invites.length > 0) {
         const templateId = type === 'sent' ? 'sent-invite-template' : 'received-invite-template';
         const template = document.getElementById(templateId);
+        if (!template) return;
+
         invites.forEach(invite => {
             const clone = document.importNode(template.content, true);
             const card = clone.querySelector('.invite-card');
@@ -410,12 +439,11 @@ function renderInvites(invites, type) {
             } else {
                 card.querySelector('.invite-sender').textContent = invite.fromUserName || 'Usuário';
                 card.querySelector('.invite-permission').textContent = formatPermission(invite.role);
-                 // Adiciona texto aos botões para melhorar a usabilidade
                 const acceptBtn = clone.querySelector('.accept-invite-btn');
                 const declineBtn = clone.querySelector('.decline-invite-btn');
                 
-                acceptBtn.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span class="text-sm font-medium">Aceitar</span>`;
-                declineBtn.innerHTML = `<i data-lucide="x" class="h-4 w-4"></i><span class="text-sm font-medium">Recusar</span>`;
+                if (acceptBtn) acceptBtn.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span class="text-sm font-medium">Aceitar</span>`;
+                if (declineBtn) declineBtn.innerHTML = `<i data-lucide="x" class="h-4 w-4"></i><span class="text-sm font-medium">Recusar</span>`;
             }
             card.querySelector('.invite-date').textContent = formatDate(invite.createdAt);
             container.appendChild(clone);
@@ -475,10 +503,11 @@ async function loadSharedAccess() {
             sharedAccess.push({ id: doc.id, ...doc.data() });
         });
         
-        renderSharedAccess(sharedAccess.sort((a, b) => (b.acceptedAt || 0) - (a.acceptedAt || 0)));
+        renderSharedAccess(sharedAccess.sort((a, b) => (b.acceptedAt?.seconds || 0) - (a.acceptedAt?.seconds || 0)));
         hideLoading();
     } catch (error) {
         hideLoading();
+        console.error("Erro ao carregar acessos compartilhados:", error);
         showError('Erro', 'Ocorreu um erro ao carregar os usuários com acesso.');
     }
 }
@@ -491,12 +520,16 @@ function renderSharedAccess(accessList) {
     const container = document.getElementById('shared-access-list');
     const emptyContainer = document.getElementById('no-shared-access');
     
+    if (!container || !emptyContainer) return;
+
     container.innerHTML = '';
     container.classList.toggle('hidden', accessList.length === 0);
     emptyContainer.classList.toggle('hidden', accessList.length > 0);
 
     if (accessList.length > 0) {
         const template = document.getElementById('shared-access-template');
+        if (!template) return;
+
         accessList.forEach(access => {
             const clone = document.importNode(template.content, true);
             const item = clone.querySelector('.shared-access-item');
@@ -533,8 +566,8 @@ function formatPermission(role) {
 }
 
 function formatDate(timestamp) {
-    if (!timestamp) return 'Data desconhecida';
-    const date = new Date(timestamp);
+    if (!timestamp || !timestamp.toDate) return 'Data desconhecida';
+    const date = timestamp.toDate();
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
