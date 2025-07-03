@@ -180,9 +180,26 @@
                 <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
                     <i class="fa-solid fa-bars w-6 h-6"></i>
                 </button>
-                <div class="flex items-center gap-2 sm:gap-3 p-2">
-                    <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
-                    <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
+                <div class="flex items-center gap-2 sm:gap-3 p-2 relative">
+                    <button id="construktor-menu-toggle" class="flex items-center gap-2 sm:gap-3 p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200">Construktor</h1>
+                        <i id="construktor-toggle-icon" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 dark:text-slate-400 ml-1"></i>
+                    </button>
+                    <div id="construktor-menu-dropdown" class="absolute left-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden dark:bg-slate-800 dark:border-slate-700">
+                        <a href="index.html" id="nav-module-builder" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-cubes h-4 w-4"></i>
+                            <span>Modelador de Módulos</span>
+                        </a>
+                        <a href="#" id="nav-flow-designer" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-diagram-flow h-4 w-4"></i>
+                            <span>Designer de Fluxos</span>
+                        </a>
+                        <a href="#" id="nav-page-builder" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-file-lines h-4 w-4"></i>
+                            <span>Construtor de Páginas</span>
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="flex items-center gap-2 sm:gap-4">

@@ -1191,3 +1191,34 @@ pre {
     margin-top: 0.5rem; /* Ajuste conforme necessário */
     z-index: 50;
 }
+
+/* Estilos para o Dropdown do Menu Principal */
+#construktor-menu-dropdown a {
+    /* Estilos base para todos os links */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#construktor-menu-dropdown a.active {
+    background-color: #e0e7ff; /* indigo-100 */
+    font-weight: 600; /* Define o peso da fonte para o ativo */
+    color: #4f46e5; /* indigo-600 */
+}
+
+.dark #construktor-menu-dropdown {
+    background-color: #334155;
+    border-color: #475569;
+}
+
+.dark #construktor-menu-dropdown a {
+    color: #e2e8f0; /* Cor padrão do texto no modo escuro */
+}
+
+.dark #construktor-menu-dropdown a:hover {
+    background-color: #475569; /* Fundo ao passar o mouse no modo escuro */
+}
+
+.dark #construktor-menu-dropdown a.active {
+    background-color: #312e81; /* indigo-900 para um destaque mais escuro no modo escuro */
+    color: #a5b4fc; /* indigo-300 para o texto ativo no modo escuro */
+    font-weight: 600;
+}
