@@ -303,26 +303,14 @@ async function manageInvite(inviteId, action) {
                 toUserId: acceptedByUserId
             });
             
-            // REMOVER ESTA LINHA: O accessControl é atualizado pela Cloud Function 'onInviteAccepted'.
-            // batch.set(db.doc(`accessControl/${acceptedByUserId}`), {
-            //     [inviteData.resourceId]: inviteData.role
-            // }, { merge: true });
             
             if (inviteData.resourceType === 'workspace') {
-                // REMOVER ESTA LINHA: O sharedWorkspaces é atualizado pela Cloud Function 'onInviteAccepted'.
-                // batch.set(db.doc(`sharedWorkspaces/${inviteData.resourceId}`), {
-                //     name: inviteData.resourceName,
-                //     ownerId: inviteData.fromUserId,
-                //     ownerName: inviteData.fromUserName
-                // });
+                // SharedWorkspaces is updated by Cloud Function 'onInviteAccepted'.
             }
         } else if (action === 'revoke') {
             const invitedUserId = inviteData.toUserId;
             if (invitedUserId) {
-                // REMOVER ESTA LINHA: A remoção do acesso é tratada pela Cloud Function 'onRoleUpdated' (após a mudança do status do convite).
-                // batch.update(db.doc(`accessControl/${invitedUserId}`), {
-                //     [inviteData.resourceId]: firebase.firestore.FieldValue.delete()
-                // });
+                // Access removal is handled by Cloud Function 'onRoleUpdated'.
             } else {
                 console.warn("Não foi possível revogar o acesso: toUserId não encontrado no convite.");
             }
@@ -380,10 +368,7 @@ async function updateUserPermission(inviteId, newRole) {
 
         const batch = db.batch();
         batch.update(db.doc(`invitations/${inviteId}`), { role: newRole });
-        // REMOVER ESTA LINHA: O accessControl é atualizado pela Cloud Function 'onRoleUpdated'.
-        // batch.update(db.doc(`accessControl/${invitedUserId}`), {
-        //     [inviteData.resourceId]: newRole
-        // });
+        // AccessControl is updated by Cloud Function 'onRoleUpdated'.
 
         await batch.commit();
         hideLoading();
