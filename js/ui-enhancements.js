@@ -146,12 +146,11 @@ function initEditFunctions() {
             }
         }
         
-        // Edição de entidades na biblioteca ou em módulos
+        // Edição de entidades na biblioteca
         if (e.target.closest('.edit-entity-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            // Verifica se é uma entidade na biblioteca ou em um módulo
-            const entityCard = e.target.closest('.entity-card') || e.target.closest('.dropped-entity-card');
+            const entityCard = e.target.closest('.entity-card');
             if (entityCard) {
                 const entityName = entityCard.querySelector('.entity-name');
                 editEntityName(entityCard, entityName);
@@ -231,28 +230,20 @@ function editModuleName(moduleCard, moduleTitle) {
 /**
  * Função para editar o nome de uma entidade
  */
-async function editEntityName(entityCard, entityName) {
+function editEntityName(entityCard, entityName) {
     if (!entityCard || !entityName) return;
     
     const currentName = entityName.textContent;
     const entityId = entityCard.dataset.entityId;
     
-    console.log('Editando entidade:', currentName, 'ID:', entityId);
+    console.log('Editando entidade:', currentName);
     
     // Verifica se SweetAlert2 está disponível
     if (typeof Swal === 'undefined') {
         const newName = prompt('Digite o novo nome da entidade:', currentName);
-        if (newName && newName.trim() !== '' && newName.trim() !== currentName) {
-            try {
-                await saveEntityNameChange(entityId, newName.trim());
-                entityName.textContent = newName.trim();
-                // Atualiza também em outros lugares onde o nome aparece
-                updateEntityNameInAllPlaces(entityId, newName.trim());
-                console.log('Entidade renomeada para:', newName);
-            } catch (error) {
-                console.error('Erro ao salvar nome da entidade:', error);
-                alert('Erro ao salvar o novo nome da entidade.');
-            }
+        if (newName && newName.trim() !== '') {
+            entityName.textContent = newName.trim();
+            console.log('Entidade renomeada para:', newName);
         }
         return;
     }
@@ -275,26 +266,18 @@ async function editEntityName(entityCard, entityName) {
             if (!value || value.trim() === '') {
                 return 'Por favor, digite um nome para a entidade';
             }
-            if (value.trim() === currentName) {
-                return 'O nome não foi alterado';
-            }
         },
         preConfirm: async (newName) => {
             try {
-                console.log('Salvando novo nome da entidade:', newName);
-                await saveEntityNameChange(entityId, newName.trim());
-                
                 // Atualiza visualmente o nome da entidade
-                entityName.textContent = newName.trim();
-                
-                // Atualiza também em outros lugares onde o nome aparece
-                updateEntityNameInAllPlaces(entityId, newName.trim());
-                
+                entityName.textContent = newName;
                 console.log('Entidade atualizada para:', newName);
                 
-                return { success: true, name: newName.trim() };
+                // Simula um atraso para mostrar loading
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                return { success: true, name: newName };
             } catch (error) {
-                console.error('Erro ao salvar nome da entidade:', error);
                 Swal.showValidationMessage(`Erro ao salvar: ${error.message}`);
             }
         },
@@ -309,46 +292,6 @@ async function editEntityName(entityCard, entityName) {
                 showConfirmButton: false
             });
         }
-    });
-}
-
-/**
- * Salva a alteração do nome da entidade no banco de dados
- */
-async function saveEntityNameChange(entityId, newName) {
-    // Verifica se a função updateEntityName está disponível globalmente
-    if (typeof window.updateEntityName === 'function') {
-        const currentWorkspace = window.getCurrentWorkspace ? window.getCurrentWorkspace() : null;
-        const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
-        const ownerId = currentWorkspace && !currentWorkspace.isOwner ? currentWorkspace.ownerId : null;
-        
-        await window.updateEntityName(entityId, newName, workspaceId, ownerId);
-    } else {
-        console.warn('Função updateEntityName não disponível globalmente');
-        throw new Error('Função de atualização não disponível');
-    }
-}
-
-/**
- * Atualiza o nome da entidade em todos os lugares onde aparece na interface
- */
-function updateEntityNameInAllPlaces(entityId, newName) {
-    // Atualiza na biblioteca de entidades
-    const libraryCards = document.querySelectorAll(`.entity-card[data-entity-id="${entityId}"] .entity-name`);
-    libraryCards.forEach(nameEl => {
-        nameEl.textContent = newName;
-    });
-    
-    // Atualiza nos módulos
-    const moduleCards = document.querySelectorAll(`.dropped-entity-card[data-entity-id="${entityId}"] .entity-name`);
-    moduleCards.forEach(nameEl => {
-        nameEl.textContent = newName;
-    });
-    
-    // Atualiza os datasets
-    const allCards = document.querySelectorAll(`[data-entity-id="${entityId}"]`);
-    allCards.forEach(card => {
-        card.dataset.entityName = newName;
     });
 }
 
